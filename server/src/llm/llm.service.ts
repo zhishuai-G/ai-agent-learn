@@ -51,8 +51,7 @@ export class LlmService {
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
       baseURL: this.configService.get<string>('OPENAI_BASE_URL'),
     });
-    this.model =
-      this.configService.get<string>('OPENAI_MODEL') || AvailableModel.GLM_5;
+    this.model = AvailableModel.MINIMAX_M2_7;
   }
 
   /**
@@ -86,10 +85,12 @@ export class LlmService {
     });
 
     for await (const chunk of stream) {
+      console.log('[Stream Chunk]', JSON.stringify(chunk));
       const content = chunk.choices[0]?.delta?.content;
       if (content) {
         yield content;
       }
     }
+    console.log('[Stream] Done');
   }
 }

@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -8,6 +8,9 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // 启用 CORS（允许前端跨域请求）
+  app.enableCors();
+
   // 全局验证管道（配合 class-validator）
   app.useGlobalPipes(
     new ValidationPipe({
@@ -16,8 +19,8 @@ async function bootstrap() {
     }),
   );
 
-  // 全局统一响应拦截器
-  app.useGlobalInterceptors(new TransformInterceptor());
+  // 全局统一响应拦截器（需要 Reflector 来读取 @SkipTransform 元数据）
+  app.useGlobalInterceptors(new TransformInterceptor(app.get(Reflector)));
 
   // 全局异常过滤器
   app.useGlobalFilters(new AllExceptionsFilter());

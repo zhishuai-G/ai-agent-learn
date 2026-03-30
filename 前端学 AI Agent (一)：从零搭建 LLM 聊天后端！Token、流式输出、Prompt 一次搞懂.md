@@ -43,14 +43,23 @@ assistant: "Token 是 LLM 处理文本的..."   ← AI 之前的回答
 
 ### 主流模型速览
 
-| 模型 | 特点 | 适合场景 |
-| --- | --- | --- |
-| GPT-4o / 4o-mini | 通用能力强，Function Calling 支持好 | 通用开发首选 |
-| Claude 3.5 | 长文本处理优秀，代码能力强 | 代码辅助、长文档 |
-| 通义千问 / 智谱 GLM | 中文友好，API 兼容 OpenAI 格式 | 国内项目 |
-| Llama 3 / Qwen 2.5 | 开源可本地部署 | 隐私敏感 / 成本控制 |
+我们通过 OneAPI 代理平台接入多种模型，以下是目前可用的：
 
-开发阶段推荐用 **gpt-4o-mini**——便宜，能力够用。
+| 模型 | 特点 | 费率 |
+| --- | --- | --- |
+| Claude Opus 4.6 / 4.5 | 最强综合能力，代码和长文本优秀 | 1.6x（贵） |
+| Claude Sonnet 4.6 / 4.5 | 能力和成本的平衡点 | 1x |
+| Claude Haiku 4.5 | 轻量快速，简单任务首选 | 0.3x |
+| GPT-5.4 | OpenAI 最新主力模型 | 1.2x |
+| GPT-5.3-Codex / 5.2-Codex | 代码专用模型 | 1x |
+| Gemini 3.1 Pro Preview / 3 Pro | Google 系列，多模态能力强 | 0.3x~0.45x |
+| Gemini 3.0 Flash | Google 轻量模型，极快 | 0.3x |
+| GLM-5 / GLM-5-Turbo | 智谱国产模型，中文友好 | 0.2x~0.3x |
+| GLM-4.7 | 上一代 GLM，便宜够用 | 0.2x |
+| MiniMax-M2.7 / M2.5 | MiniMax 国产模型 | 0.2x |
+| Kimi K2.5 | 月之暗面，长文本能力强 | 0.2x |
+
+开发阶段推荐用 **GLM-5**——便宜（0.2x 费率），中文能力好，日常学习够用。正式场景可以切换到 Claude Sonnet 或 GPT-5.4。
 
 ## 二、Prompt Engineering：不是玄学，是工程
 
@@ -122,15 +131,17 @@ server/
 
 ### 3.1 环境变量配置
 
+我们使用 OneAPI 代理平台统一接入各家模型。好处是**代码完全兼容 OpenAI SDK 格式**，只需要改 Base URL 和模型名：
+
 ```bash
 # .env
 OPENAI_API_KEY=sk-your-api-key-here
-OPENAI_BASE_URL=https://api.openai.com/v1
-OPENAI_MODEL=gpt-4o-mini
+OPENAI_BASE_URL=https://your-oneapi-proxy.com/v1
+OPENAI_MODEL=GLM-5
 PORT=3000
 ```
 
-如果用国内代理（比如通义千问兼容 OpenAI 格式的），改一下 `OPENAI_BASE_URL` 就行，代码不用动。
+通过 OneAPI 代理的好处：一个 API Key 就能访问 Claude、GPT、GLM、Gemini 等所有模型，切换模型只需改 `OPENAI_MODEL` 的值，代码不用动。
 
 NestJS 通过 `@nestjs/config` 的 `ConfigModule` 加载 `.env`：
 
@@ -149,12 +160,40 @@ export class AppModule {}
 
 这是整个项目和 AI 打交道的唯一入口。它做两件事：**普通调用**和**流式调用**。
 
+首先，我们定义了一个**模型枚举**，把 OneAPI 平台上所有可用模型都列出来，切换模型时有类型提示，不用去翻文档：
+
 ```typescript
 // src/llm/llm.service.ts
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import OpenAI from 'openai';
+export enum AvailableModel {
+  // Claude 系列
+  CLAUDE_OPUS_4_6 = 'Claude Opus 4.6',
+  CLAUDE_OPUS_4_5 = 'Claude Opus 4.5',
+  CLAUDE_SONNET_4_6 = 'Claude Sonnet 4.6',
+  CLAUDE_SONNET_4_5 = 'Claude Sonnet 4.5',
+  CLAUDE_HAIKU_4_5 = 'Claude Haiku 4.5',
+  // GPT 系列
+  GPT_5_4 = 'GPT-5.4',
+  GPT_5_3_CODEX = 'GPT-5.3-Codex',
+  GPT_5_2_CODEX = 'GPT-5.2-Codex',
+  // Gemini 系列
+  GEMINI_3_1_PRO_PREVIEW = 'Gemini 3.1 Pro Preview',
+  GEMINI_3_PRO = 'Gemini 3 Pro',
+  GEMINI_3_0_FLASH = 'Gemini 3.0 Flash',
+  // GLM 系列
+  GLM_5 = 'GLM-5',
+  GLM_5_TURBO = 'GLM-5-Turbo',
+  GLM_4_7 = 'GLM-4.7',
+  // MiniMax
+  MINIMAX_M2_7 = 'MiniMax-M2.7',
+  MINIMAX_M2_5 = 'MiniMax-M2.5',
+  // Kimi
+  KIMI_K2_5 = 'Kimi K2.5',
+}
+```
 
+然后是 LlmService 本体：
+
+```typescript
 @Injectable()
 export class LlmService {
   private client: OpenAI;
@@ -165,7 +204,8 @@ export class LlmService {
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
       baseURL: this.configService.get<string>('OPENAI_BASE_URL'),
     });
-    this.model = this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini';
+    this.model =
+      this.configService.get<string>('OPENAI_MODEL') || AvailableModel.GLM_5;
   }
 
   // 普通聊天 —— 一次性返回完整结果
@@ -290,35 +330,43 @@ export class ChatController {
 
   // POST /chat/stream —— 流式聊天（SSE）
   @Post('stream')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '流式聊天 (SSE)' })
-  chatStream(@Body() body: ChatRequestDto): Observable<MessageEvent> {
+  @SkipTransform()  // 跳过统一响应包装，直接推送 SSE
+  async chatStream(@Body() body: ChatRequestDto, @Res() res: Response) {
     const { message, history, systemPrompt } = body;
 
-    return new Observable<MessageEvent>((subscriber) => {
-      (async () => {
-        try {
-          const stream = this.chatService.chatStream(message, history, systemPrompt);
-          for await (const chunk of stream) {
-            subscriber.next({
-              data: JSON.stringify({ content: chunk }),
-            } as MessageEvent);
-          }
-          // 发送结束信号
-          subscriber.next({
-            data: JSON.stringify({ content: '', done: true }),
-          } as MessageEvent);
-          subscriber.complete();
-        } catch (error) {
-          subscriber.error(error);
-        }
-      })();
-    });
+    // 手动设置 SSE 响应头
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    try {
+      const stream = this.chatService.chatStream(message, history, systemPrompt);
+      for await (const chunk of stream) {
+        res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
+      }
+      res.write(`data: ${JSON.stringify({ content: '', done: true })}\n\n`);
+    } catch (error) {
+      res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+    } finally {
+      res.end();
+    }
   }
 }
 ```
 
-流式接口的关键在于 **SSE（Server-Sent Events）**。NestJS 的 SSE 本质上就是返回一个 `Observable<MessageEvent>`，框架会自动设置 `Content-Type: text/event-stream`，然后每次 `subscriber.next()` 就推送一条数据给前端。
+**踩坑记录：POST + SSE 的正确方式**
+
+你可能在很多教程里看到用 `@Sse()` 装饰器 + `Observable<MessageEvent>` 来实现流式推送。但这有个限制——**`@Sse()` 只支持 GET 请求**。而聊天接口需要用 POST 传 body（消息内容、历史记录等），所以 `@Sse()` 用不了。
+
+如果你用 `@Post()` + `Observable<MessageEvent>`，NestJS **不会**自动设置 `text/event-stream`，而是等 Observable 完成后把最后一个值当普通 JSON 返回——流式 chunk 全丢了。
+
+正确做法是用 `@Res()` 直接操作 Express 的 Response 对象：
+
+1. 手动设 `Content-Type: text/event-stream`
+2. 用 `res.write()` 逐条推送 `data: {...}\n\n`
+3. 最后 `res.end()` 关闭连接
+4. 用 `@SkipTransform()` 跳过统一响应拦截器（否则 SSE 数据会被包一层 `{ code, message, data }`）
 
 一图看懂流式请求的完整链路：
 
@@ -326,18 +374,18 @@ export class ChatController {
 前端 fetch('/chat/stream', { body: { message: '你好' } })
   ↓
 ChatController.chatStream()
-  ↓ 创建 Observable
+  ↓ res.setHeader('Content-Type', 'text/event-stream')
 ChatService.chatStream()
   ↓ yield* 代理
 LlmService.chatStream()
   ↓ stream: true
 OpenAI API 流式返回
   ↓ for await (const chunk of stream)
-yield "你"  →  subscriber.next({ data: '{"content":"你"}' })  →  SSE 推送给前端
-yield "好"  →  subscriber.next({ data: '{"content":"好"}' })  →  SSE 推送给前端
-yield "！"  →  subscriber.next({ data: '{"content":"！"}' })  →  SSE 推送给前端
-            →  subscriber.next({ data: '{"done":true}' })     →  结束信号
-            →  subscriber.complete()
+yield "你"  →  res.write('data: {"content":"你"}\n\n')  →  推送给前端
+yield "好"  →  res.write('data: {"content":"好"}\n\n')  →  推送给前端
+yield "！"  →  res.write('data: {"content":"！"}\n\n')  →  推送给前端
+            →  res.write('data: {"done":true}\n\n')      →  结束信号
+            →  res.end()
 ```
 
 前端拿到后只需要逐条拼接 content，就实现了打字机效果。
@@ -364,10 +412,17 @@ yield "！"  →  subscriber.next({ data: '{"content":"！"}' })  →  SSE 推�
 实现方式是**全局拦截器 + 全局异常过滤器**：
 
 ```typescript
-// 拦截器：包装成功响应
+// 自定义装饰器：标记跳过响应包装（用于 SSE 流式接口）
+export const SkipTransform = () => SetMetadata('skipTransform', true);
+
+// 拦截器：包装成功响应（带 @SkipTransform 的接口跳过）
 @Injectable()
 export class TransformInterceptor implements NestInterceptor {
+  constructor(private reflector: Reflector) {}
+
   intercept(context: ExecutionContext, next: CallHandler) {
+    const skip = this.reflector.get<boolean>('skipTransform', context.getHandler());
+    if (skip) return next.handle();  // SSE 等特殊接口直接放行
     return next.handle().pipe(map((data) => ApiResponse.success(data)));
   }
 }
@@ -382,7 +437,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 }
 ```
 
-Controller 不需要手动包装，只管返回业务数据，拦截器自动帮你套上 `{ code, message, data }` 的壳。
+Controller 不需要手动包装，只管返回业务数据，拦截器自动帮你套上 `{ code, message, data }` 的壳。**SSE 流式接口**加上 `@SkipTransform()` 就能跳过包装，直接推送原始 SSE 数据。
 
 ### 4.2 请求参数校验
 
@@ -518,8 +573,9 @@ curl -X POST http://localhost:3000/chat \
 **核心要点**：
 
 1. **LLM 是无状态的**：它不记得上一轮对话，每次都要把历史全传过去
-2. **流式输出的本质**：`stream: true` → AsyncGenerator → Observable → SSE → 前端逐条拼接
-3. **工程化很重要**：统一响应格式、参数校验、Swagger 文档——这些不是锦上添花，是生产环境的基本要求
-4. **Token 决定成本和容量**：开发用 gpt-4o-mini 省钱，对话历史要控制长度
+2. **流式输出的本质**：`stream: true` → AsyncGenerator → `res.write()` SSE → 前端逐条拼接
+3. **POST + SSE 要手动实现**：NestJS 的 `@Sse()` 只支持 GET，POST 流式需要用 `@Res()` 手动写 SSE 响应头和数据
+4. **工程化很重要**：统一响应格式、参数校验、Swagger 文档——这些不是锦上添花，是生产环境的基本要求
+4. **模型切换零成本**：通过 OneAPI 代理 + 枚举管理，改一行 `.env` 就能在 Claude / GPT / GLM / Gemini 之间自由切换
 
 下一篇，我们将进入 **Phase 2：LangChain.js**——不再直接调用 OpenAI SDK，而是用 LangChain 的 LCEL 表达式语言来编排调用链，并学习 Tool Use（让 AI 调用外部工具）。
