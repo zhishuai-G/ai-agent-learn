@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { LlmService } from '../llm/llm.service';
+import { AvailableModel } from '../llm/llm.service';
 import OpenAI from 'openai';
 
 /**
@@ -52,13 +53,16 @@ export class ChatService {
 
   /**
    * 流式聊天 - 逐 token 返回
+   * deepThink 为 true 时使用推理模型
    */
   async *chatStream(
     message: string,
     history: OpenAI.ChatCompletionMessageParam[] = [],
     systemPrompt?: string,
+    deepThink?: boolean,
   ): AsyncGenerator<string> {
     const messages = this.buildMessages(message, history, systemPrompt);
-    yield* this.llmService.chatStream(messages);
+    const model = deepThink ? AvailableModel.MINIMAX_M2_7: undefined;
+    yield* this.llmService.chatStream(messages, model);
   }
 }

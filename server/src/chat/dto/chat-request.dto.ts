@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsArray, ValidateNested, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class ChatMessageDto {
@@ -39,4 +39,12 @@ export class ChatRequestDto {
   @IsOptional()
   @IsString()
   systemPrompt?: string;
+
+  @ApiPropertyOptional({
+    description: '是否开启深度思考（使用推理模型）',
+    example: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  deepThink?: boolean;
 }

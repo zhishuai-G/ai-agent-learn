@@ -36,7 +36,7 @@ export class ChatController {
     @Body() body: ChatRequestDto,
     @Res() res: Response,
   ) {
-    const { message, history, systemPrompt } = body;
+    const { message, history, systemPrompt, deepThink } = body;
 
     // 手动设置 SSE 响应头
     res.setHeader('Content-Type', 'text/event-stream');
@@ -49,6 +49,7 @@ export class ChatController {
         message,
         history,
         systemPrompt,
+        deepThink,
       );
       for await (const chunk of stream) {
         res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);

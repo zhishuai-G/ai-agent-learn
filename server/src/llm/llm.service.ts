@@ -30,6 +30,7 @@ export enum AvailableModel {
   MINIMAX_M2_5 = 'MiniMax-M2.5',
   // Kimi
   KIMI_K2_5 = 'Kimi K2.5',
+  KIMI_K2_5_THINKING = 'Kimi K2.5 (Thinking)',
 }
 
 /**
@@ -51,7 +52,7 @@ export class LlmService {
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
       baseURL: this.configService.get<string>('OPENAI_BASE_URL'),
     });
-    this.model = AvailableModel.MINIMAX_M2_7;
+    this.model = AvailableModel.MINIMAX_M2_5;
   }
 
   /**
@@ -76,9 +77,10 @@ export class LlmService {
    */
   async *chatStream(
     messages: OpenAI.ChatCompletionMessageParam[],
+    model?: string,
   ): AsyncGenerator<string> {
     const stream = await this.client.chat.completions.create({
-      model: this.model,
+      model: model || this.model,
       messages,
       temperature: 0.7,
       stream: true,
