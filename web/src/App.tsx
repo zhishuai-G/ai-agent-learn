@@ -1,12 +1,20 @@
 import { useState, useRef, useEffect } from 'react'
 import './App.css'
 
+interface ToolCallInfo {
+  name: string
+  args: Record<string, unknown>
+  result?: string
+  status: 'calling' | 'done'
+}
+
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   thinkContent?: string
   isThinking?: boolean
-  thinkDuration?: number  // 思考耗时（秒）
+  thinkDuration?: number
+  toolCalls?: ToolCallInfo[]
 }
 
 // 从原始文本中分离 <think>...</think> 内容
@@ -18,7 +26,6 @@ function parseThinkContent(raw: string): { thinkContent: string; content: string
 
   const thinkEnd = raw.indexOf('</think>')
   if (thinkEnd === -1) {
-    // <think> 存在但 </think> 还没到，正在思考中
     return {
       thinkContent: raw.slice(thinkStart + 7),
       content: '',
@@ -26,13 +33,14 @@ function parseThinkContent(raw: string): { thinkContent: string; content: string
     }
   }
 
-  // 思考结束，分离内容
   return {
     thinkContent: raw.slice(thinkStart + 7, thinkEnd),
     content: raw.slice(thinkEnd + 8).trim(),
     isThinking: false,
   }
 }
+
+type ChatMode = 'chat' | 'agent'
 
 const API_BASE = 'http://localhost:3500'
 
@@ -43,6 +51,7 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [deepThink, setDeepThink] = useState(false)
+  const [mode, setMode] = useState<ChatMode>('agent')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -53,7 +62,7 @@ function App() {
     scrollToBottom()
   }, [messages])
 
-  // 流式聊天
+  // Phase 1: 流式聊天
   const handleStreamChat = async () => {
     if (!input.trim() || loading) return
 
@@ -62,12 +71,9 @@ function App() {
     setMessages(prev => [...prev, { role: 'user', content: userMessage }])
     setLoading(true)
 
-    // 先插入一条空的 assistant 消息，后面逐步追加
     setMessages(prev => [...prev, { role: 'assistant', content: '', thinkContent: '', isThinking: false }])
 
-    // rawContent 累积所有原始文本（包含 <think> 标签），用于每次重新解析
     let rawContent = ''
-    // 记录思考开始时间，用于计算思考耗时
     let thinkStartTime: number | null = null
 
     try {
@@ -76,61 +82,41 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage,
-          history: messages,
+          history: messages.map(m => ({ role: m.role, content: m.content })),
           systemPrompt,
           deepThink,
         }),
       })
 
-      // 从 Response.body 获取 ReadableStream 的 reader，用于逐块读取流式数据
       const reader = res.body?.getReader()
-      // TextDecoder 将二进制 Uint8Array 解码为 UTF-8 字符串
       const decoder = new TextDecoder()
-
       if (!reader) throw new Error('No reader available')
 
-      // buffer 用于缓存跨 chunk 的不完整数据（网络传输中一条 SSE 消息可能被拆分到多个 chunk）
       let buffer = ''
 
-      // 无限循环，持续读取流数据直到服务端关闭连接
       while (true) {
-        // reader.read() 返回 { done, value }
-        // done=true 表示流结束，value 是本次读取到的 Uint8Array 数据块
         const { done, value } = await reader.read()
         if (done) break
 
-        // 将二进制数据解码为字符串，stream: true 表示后续还有数据，避免截断多字节字符
         buffer += decoder.decode(value, { stream: true })
-
-        // SSE 协议格式：每条消息以 "data: {JSON}\n\n" 形式发送
-        // 按换行符拆分，逐行解析
-        console.log('buffer:', buffer);
         const lines = buffer.split('\n')
-        console.log('lines:', lines);
-        // 清空 buffer，未成功解析的行会重新放回 buffer
         buffer = ''
 
         for (const line of lines) {
           const trimmed = line.trim()
-          // 判断是否是 SSE 数据行（以 "data:" 开头）
           if (trimmed.startsWith('data:')) {
             try {
-              // 去掉 "data:" 前缀，提取 JSON 字符串
               const jsonStr = trimmed.slice(5).trim()
               const parsed = JSON.parse(jsonStr)
-              // 服务端发送 { done: true } 表示流结束，跳过
               if (parsed.done) continue
-              // 有实际内容时，累积原始文本并重新解析 think 标签
               if (parsed.content) {
                 rawContent += parsed.content
                 const { thinkContent, content, isThinking } = parseThinkContent(rawContent)
 
-                // 记录思考开始时间
                 if (isThinking && !thinkStartTime) {
                   thinkStartTime = Date.now()
                 }
 
-                // 计算思考耗时
                 let thinkDuration: number | undefined
                 if (thinkStartTime && !isThinking && thinkContent) {
                   thinkDuration = Math.round((Date.now() - thinkStartTime) / 1000)
@@ -151,17 +137,14 @@ function App() {
                 })
               }
             } catch {
-              // JSON.parse 失败说明这行数据不完整（被拆到了下一个 chunk），放回 buffer 等下次拼接
               buffer += line + '\n'
             }
           } else {
-            // 非 "data:" 开头的非空行，可能是被截断的不完整数据，也放回 buffer
             if (trimmed) buffer += line + '\n'
           }
         }
       }
     } catch (err) {
-      // 流式请求出错时，将错误信息写入最后一条空的 assistant 消息
       setMessages(prev => {
         const updated = [...prev]
         const last = updated[updated.length - 1]
@@ -171,15 +154,141 @@ function App() {
         return updated
       })
     } finally {
-      // 无论成功还是失败，都关闭 loading 状态
       setLoading(false)
+    }
+  }
+
+  // Phase 2: Agent 聊天（带工具调用）
+  const handleAgentChat = async () => {
+    if (!input.trim() || loading) return
+
+    const userMessage = input.trim()
+    setInput('')
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }])
+    setLoading(true)
+
+    // 插入一条空的 assistant 消息，带 toolCalls 数组
+    setMessages(prev => [...prev, { role: 'assistant', content: '', toolCalls: [] }])
+
+    try {
+      const res = await fetch(`${API_BASE}/agent/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage,
+          history: messages.map(m => ({ role: m.role, content: m.content })),
+          systemPrompt,
+        }),
+      })
+
+      const reader = res.body?.getReader()
+      const decoder = new TextDecoder()
+      if (!reader) throw new Error('No reader available')
+
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = ''
+
+        for (const line of lines) {
+          const trimmed = line.trim()
+          if (trimmed.startsWith('data:')) {
+            try {
+              const jsonStr = trimmed.slice(5).trim()
+              const parsed = JSON.parse(jsonStr)
+
+              if (parsed.type === 'tool_call') {
+                // 工具调用开始
+                setMessages(prev => {
+                  const updated = [...prev]
+                  const last = updated[updated.length - 1]
+                  if (last && last.role === 'assistant') {
+                    const toolCalls = [...(last.toolCalls || [])]
+                    toolCalls.push({
+                      name: parsed.name,
+                      args: parsed.args,
+                      status: 'calling',
+                    })
+                    last.toolCalls = toolCalls
+                  }
+                  return updated
+                })
+              } else if (parsed.type === 'tool_result') {
+                // 工具返回结果
+                setMessages(prev => {
+                  const updated = [...prev]
+                  const last = updated[updated.length - 1]
+                  if (last && last.role === 'assistant' && last.toolCalls) {
+                    const toolCalls = [...last.toolCalls]
+                    const tc = toolCalls.find(t => t.name === parsed.name && t.status === 'calling')
+                    if (tc) {
+                      tc.result = parsed.result
+                      tc.status = 'done'
+                    }
+                    last.toolCalls = toolCalls
+                  }
+                  return updated
+                })
+              } else if (parsed.type === 'content') {
+                // 最终文本内容
+                setMessages(prev => {
+                  const updated = [...prev]
+                  const last = updated[updated.length - 1]
+                  if (last && last.role === 'assistant') {
+                    last.content = parsed.content
+                  }
+                  return updated
+                })
+              } else if (parsed.type === 'error') {
+                setMessages(prev => {
+                  const updated = [...prev]
+                  const last = updated[updated.length - 1]
+                  if (last && last.role === 'assistant') {
+                    last.content = `Error: ${parsed.error}`
+                  }
+                  return updated
+                })
+              }
+              // type === 'done' 不需要特殊处理
+            } catch {
+              buffer += line + '\n'
+            }
+          } else {
+            if (trimmed) buffer += line + '\n'
+          }
+        }
+      }
+    } catch (err) {
+      setMessages(prev => {
+        const updated = [...prev]
+        const last = updated[updated.length - 1]
+        if (last && last.role === 'assistant' && !last.content) {
+          last.content = `Error: ${err}`
+        }
+        return updated
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSend = () => {
+    if (mode === 'agent') {
+      handleAgentChat()
+    } else {
+      handleStreamChat()
     }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleStreamChat()
+      handleSend()
     }
   }
 
@@ -187,11 +296,18 @@ function App() {
     setMessages([])
   }
 
+  // 工具名称映射为友好的中文 + 图标
+  const toolDisplayName: Record<string, { icon: string; label: string }> = {
+    get_weather: { icon: '🌤️', label: '天气查询' },
+    get_current_time: { icon: '🕐', label: '时间查询' },
+    web_search: { icon: '🔍', label: '百科搜索' },
+  }
+
   return (
     <div className="chat-app">
       {/* Header */}
       <header className="chat-header">
-        <h1>AI Chat - Phase 1</h1>
+        <h1>AI Chat - {mode === 'agent' ? 'Phase 2 (Tool Use)' : 'Phase 1'}</h1>
         <div className="header-actions">
           <button className="btn-icon" onClick={() => setShowSettings(!showSettings)} title="Settings">
             {showSettings ? '✕' : '⚙'}
@@ -218,7 +334,11 @@ function App() {
         {messages.length === 0 && (
           <div className="empty-state">
             <p>👋 发送一条消息开始聊天</p>
-            <p className="hint">按 Enter 发送，开启「深度思考」获得更详细的推理</p>
+            <p className="hint">
+              {mode === 'agent'
+                ? '智能助手模式：AI 可以调用工具查实时天气、查世界时间、搜索百科知识'
+                : '按 Enter 发送，开启「深度思考」获得更详细的推理'}
+            </p>
           </div>
         )}
         {messages.map((msg, i) => (
@@ -228,6 +348,7 @@ function App() {
             </div>
             <div className="message-content">
               <div className="message-bubble">
+                {/* Think Block (Phase 1 深度思考) */}
                 {msg.thinkContent && (
                   <details className="think-block" open={msg.isThinking}>
                     <summary>
@@ -242,6 +363,40 @@ function App() {
                     <div className="think-content">{msg.thinkContent}</div>
                   </details>
                 )}
+
+                {/* Tool Calls (Phase 2) */}
+                {msg.toolCalls && msg.toolCalls.length > 0 && (
+                  <div className="tool-calls-chain">
+                    {msg.toolCalls.map((tc, j) => {
+                      const display = toolDisplayName[tc.name] || { icon: '🔧', label: tc.name }
+                      return (
+                        <details key={j} className="tool-call-block" open>
+                          <summary className="tool-call-header">
+                            <span className="tool-call-icon">{display.icon}</span>
+                            <span className="tool-call-name">{display.label}</span>
+                            <span className={`tool-call-status ${tc.status}`}>
+                              {tc.status === 'calling' ? '调用中...' : '已完成'}
+                            </span>
+                          </summary>
+                          <div className="tool-call-body">
+                            <div className="tool-call-args">
+                              <span className="tool-call-label">参数</span>
+                              <code>{JSON.stringify(tc.args, null, 2)}</code>
+                            </div>
+                            {tc.result && (
+                              <div className="tool-call-result">
+                                <span className="tool-call-label">结果</span>
+                                <div className="tool-call-result-text">{tc.result}</div>
+                              </div>
+                            )}
+                          </div>
+                        </details>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* Main Content */}
                 {msg.content || (loading && i === messages.length - 1 ? '▍' : '')}
               </div>
             </div>
@@ -250,30 +405,41 @@ function App() {
         <div ref={messagesEndRef} />
       </main>
 
-      {/* Input - DeepSeek 风格 */}
+      {/* Input */}
       <footer className="chat-input">
         <div className="input-card">
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="给 AI 发送消息"
+            placeholder={mode === 'agent' ? '试试问：北京天气怎么样？/ 纽约现在几点？/ 什么是 LangChain？' : '给 AI 发送消息'}
             rows={1}
             disabled={loading}
           />
           <div className="input-bottom">
             <div className="input-tools">
+              {/* 模式切换 */}
               <button
-                className={`btn-tool ${deepThink ? 'active' : ''}`}
-                onClick={() => setDeepThink(!deepThink)}
-                title="深度思考"
+                className={`btn-tool ${mode === 'agent' ? 'active' : ''}`}
+                onClick={() => setMode(mode === 'agent' ? 'chat' : 'agent')}
+                title="切换模式"
               >
-                💭 深度思考
+                {mode === 'agent' ? '🛠️ 智能助手' : '💬 普通聊天'}
               </button>
+              {/* 深度思考（仅普通聊天模式） */}
+              {mode === 'chat' && (
+                <button
+                  className={`btn-tool ${deepThink ? 'active' : ''}`}
+                  onClick={() => setDeepThink(!deepThink)}
+                  title="深度思考"
+                >
+                  💭 深度思考
+                </button>
+              )}
             </div>
             <button
               className="btn-send-round"
-              onClick={handleStreamChat}
+              onClick={handleSend}
               disabled={!input.trim() || loading}
             >
               {loading ? '⏳' : '↑'}

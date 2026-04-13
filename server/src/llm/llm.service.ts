@@ -52,7 +52,7 @@ export class LlmService {
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
       baseURL: this.configService.get<string>('OPENAI_BASE_URL'),
     });
-    this.model = AvailableModel.MINIMAX_M2_5;
+    this.model = AvailableModel.GLM_5;
   }
 
   /**
