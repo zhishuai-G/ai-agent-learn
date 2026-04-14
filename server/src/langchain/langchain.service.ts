@@ -24,7 +24,7 @@ export class LangChainService {
         baseURL: this.configService.get<string>('OPENAI_BASE_URL'),
       },
       modelName: this.configService.get<string>('OPENAI_MODEL') || 'GLM-5',
-      temperature: 0.7,
+      temperature: Number(this.configService.get<string>('OPENAI_TEMPERATURE', '0.7')),
     });
   }
 
