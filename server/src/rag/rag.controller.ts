@@ -2,6 +2,7 @@ import { Controller, Post, Get, Delete, Body, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { RagService } from './rag.service';
+import { RagDocumentService } from './rag-document.service';
 import {
   AddDocumentDto,
   AddWebDocumentDto,
@@ -23,7 +24,10 @@ import {
 @ApiTags('RAG - 检索增强生成')
 @Controller('rag')
 export class RagController {
-  constructor(private readonly ragService: RagService) {}
+  constructor(
+    private readonly ragService: RagService,
+    private readonly ragDocumentService: RagDocumentService,
+  ) { }
 
   /**
    * 添加文本文档到知识库
@@ -35,7 +39,7 @@ export class RagController {
   })
   @ApiResponse({ status: 201, description: '文档添加成功' })
   async addDocument(@Body() dto: AddDocumentDto) {
-    const result = await this.ragService.addDocument(dto.content, dto.metadata);
+    const result = await this.ragDocumentService.addDocument(dto.content, dto.metadata);
     return {
       success: true,
       message: `文档已添加，生成 ${result.chunksAdded} 个文档块`,
@@ -53,7 +57,7 @@ export class RagController {
   })
   @ApiResponse({ status: 201, description: '网页文档添加成功' })
   async addWebDocument(@Body() dto: AddWebDocumentDto) {
-    const result = await this.ragService.addWebDocument(dto.url);
+    const result = await this.ragDocumentService.addWebDocument(dto.url);
     return {
       success: true,
       message: `网页已加载，生成 ${result.chunksAdded} 个文档块`,
@@ -122,7 +126,7 @@ export class RagController {
     description: '返回当前知识库的文档数量和就绪状态',
   })
   getStatus() {
-    return this.ragService.getStatus();
+    return this.ragDocumentService.getStatus();
   }
 
   /**
@@ -134,7 +138,7 @@ export class RagController {
     description: '删除所有已添加的文档',
   })
   async clearDocuments() {
-    await this.ragService.clearKnowledgeBase();
+    await this.ragDocumentService.clearKnowledgeBase();
     return { success: true, message: '知识库已清空' };
   }
 }

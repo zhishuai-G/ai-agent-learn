@@ -1,0 +1,43 @@
+---
+description: 项目通用规范：文件行数限制、目录结构、命名约定
+alwaysApply: true
+---
+
+# 项目通用规范
+
+## 文件行数限制
+
+单个源代码文件不得超过 **500 行**。超过时必须拆分：
+
+- **React 组件**: 按功能拆分为子组件，提取自定义 hooks
+- **NestJS Service**: 按职责拆分为多个 service，或提取工具函数
+- **CSS 文件**: 按模块拆分为独立的 CSS 文件
+
+## 项目结构
+
+```
+web/src/           # React 前端（Vite + React 19 + TypeScript）
+server/src/        # NestJS 后端（LangChain.js + LangGraph）
+  ├── {feature}/          # 功能模块目录
+  │   ├── {feature}.module.ts
+  │   ├── {feature}.controller.ts
+  │   ├── {feature}.service.ts
+  │   └── dto/
+  │       └── {feature}-{type}.dto.ts
+  ├── common/             # 公共模块（拦截器、过滤器、DTO）
+  └── main.ts
+```
+
+## 命名约定
+
+- 文件名：`kebab-case`（如 `chat-request.dto.ts`）
+- 类/接口/类型：`PascalCase`（如 `ChatService`、`RagSource`）
+- 变量/函数：`camelCase`（如 `handleSend`、`fetchRagStatus`）
+- 常量：`UPPER_SNAKE_CASE`（如 `API_BASE`）
+
+## 代码风格
+
+- 缩进：2 空格
+- 引号：单引号（后端 Prettier 强制）
+- 尾逗号：所有位置（后端 Prettier 强制）
+- 分号：后端必须有，前端可省略

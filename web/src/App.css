@@ -168,8 +168,15 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .message.user {
@@ -214,7 +221,7 @@ body {
   color: var(--text-primary);
 }
 
-/* Input Area - DeepSeek 风格 */
+/* Input Area */
 .chat-input {
   padding: 16px 20px 20px;
   background: var(--bg-primary);
@@ -314,7 +321,7 @@ body {
   cursor: not-allowed;
 }
 
-/* Think Block - DeepSeek 风格的思考折叠区域 */
+/* Think Block */
 .think-block {
   margin-bottom: 12px;
   padding: 0;
@@ -336,7 +343,6 @@ body {
   display: none;
 }
 
-/* 折叠箭头 - DeepSeek 风格 chevron */
 .think-block summary::before {
   content: '›';
   font-size: 18px;
@@ -363,8 +369,15 @@ body {
 }
 
 @keyframes thinkPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .think-content {
@@ -385,7 +398,7 @@ body {
   word-break: break-word;
 }
 
-/* ======= Phase 2: Tool Call Visualization ======= */
+/* Tool Call Visualization */
 .tool-calls-chain {
   display: flex;
   flex-direction: column;
@@ -484,176 +497,4 @@ body {
   color: var(--text-primary);
   white-space: pre-wrap;
   word-break: break-word;
-}
-
-.tool-call-result-text {
-  background: #eef7ee;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #1b5e20;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-/* ======= Phase 3: LangGraph UI ======= */
-
-/* 图节点执行指示器 */
-.graph-node-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 16px;
-  background: #f0f4ff;
-  border: 1px solid #d0daff;
-  margin-bottom: 10px;
-  font-size: 13px;
-  animation: fadeIn 0.2s ease;
-}
-
-.graph-node-icon {
-  font-size: 14px;
-}
-
-.graph-node-label {
-  font-weight: 500;
-  color: #3b5bfe;
-}
-
-.graph-node-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #3b5bfe;
-  animation: nodePulse 1s ease-in-out infinite;
-}
-
-@keyframes nodePulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
-}
-
-/* Human-in-the-Loop 中断确认面板 */
-.hitl-interrupt-panel {
-  margin: 10px 0;
-  padding: 14px 16px;
-  border-radius: 10px;
-  background: #fffbeb;
-  border: 1px solid #fcd34d;
-}
-
-.hitl-interrupt-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.hitl-interrupt-icon {
-  font-size: 18px;
-}
-
-.hitl-interrupt-title {
-  font-weight: 600;
-  font-size: 14px;
-  color: #92400e;
-}
-
-.hitl-interrupt-desc {
-  font-size: 13px;
-  color: #a16207;
-  line-height: 1.5;
-  margin-bottom: 12px;
-}
-
-.hitl-interrupt-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.hitl-btn {
-  padding: 7px 18px;
-  border-radius: 8px;
-  border: none;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.hitl-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.hitl-btn-approve {
-  background: #059669;
-  color: white;
-}
-
-.hitl-btn-approve:hover:not(:disabled) {
-  background: #047857;
-}
-
-/* LangGraph 子模式选择器 */
-.lg-submode-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.lg-submode-divider {
-  color: #d0d0d0;
-  font-size: 16px;
-  margin: 0 4px;
-}
-
-.btn-tool-sm {
-  padding: 4px 10px;
-  font-size: 12px;
-}
-
-/* Settings 面板中的 Thread ID 区域 */
-.settings-thread {
-  margin-top: 12px;
-}
-
-.settings-thread label {
-  display: block;
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-  font-weight: 500;
-}
-
-.thread-id-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.thread-id-row input {
-  flex: 1;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 13px;
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.thread-id-row input:focus {
-  border-color: var(--accent);
-}
-
-.settings-hint {
-  display: block;
-  font-size: 12px;
-  color: #999;
-  margin-top: 4px;
 }

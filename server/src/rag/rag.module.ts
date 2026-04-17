@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { RagController } from './rag.controller';
 import { RagService } from './rag.service';
+import { RagDocumentService } from './rag-document.service';
 import { LlmModule } from '../llm/llm.module';
 
 /**
@@ -16,7 +17,7 @@ import { LlmModule } from '../llm/llm.module';
 @Module({
   imports: [LlmModule],
   controllers: [RagController],
-  providers: [RagService],
-  exports: [RagService],
+  providers: [RagDocumentService, RagService],
+  exports: [RagService, RagDocumentService],
 })
-export class RagModule {}
+export class RagModule { }

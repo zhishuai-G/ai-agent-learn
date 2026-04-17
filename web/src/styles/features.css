@@ -1,0 +1,406 @@
+/* ======= Phase 3: LangGraph UI ======= */
+
+.tool-call-result-text {
+  background: #eef7ee;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #1b5e20;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 图节点执行指示器 */
+.graph-node-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  background: #f0f4ff;
+  border: 1px solid #d0daff;
+  margin-bottom: 10px;
+  font-size: 13px;
+  animation: fadeIn 0.2s ease;
+}
+
+.graph-node-icon {
+  font-size: 14px;
+}
+
+.graph-node-label {
+  font-weight: 500;
+  color: #3b5bfe;
+}
+
+.graph-node-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3b5bfe;
+  animation: nodePulse 1s ease-in-out infinite;
+}
+
+@keyframes nodePulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
+/* Human-in-the-Loop 中断确认面板 */
+.hitl-interrupt-panel {
+  margin: 10px 0;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+}
+
+.hitl-interrupt-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.hitl-interrupt-icon {
+  font-size: 18px;
+}
+
+.hitl-interrupt-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #92400e;
+}
+
+.hitl-interrupt-desc {
+  font-size: 13px;
+  color: #a16207;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.hitl-interrupt-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.hitl-btn {
+  padding: 7px 18px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hitl-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hitl-btn-approve {
+  background: #059669;
+  color: white;
+}
+
+.hitl-btn-approve:hover:not(:disabled) {
+  background: #047857;
+}
+
+/* LangGraph 子模式选择器 */
+.lg-submode-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lg-submode-divider {
+  color: #d0d0d0;
+  font-size: 16px;
+  margin: 0 4px;
+}
+
+.btn-tool-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+/* Settings 面板中的 Thread ID 区域 */
+.settings-thread {
+  margin-top: 12px;
+}
+
+.settings-thread label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.thread-id-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.thread-id-row input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.thread-id-row input:focus {
+  border-color: var(--accent);
+}
+
+.settings-hint {
+  display: block;
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* ======= Phase 4: RAG UI ======= */
+
+/* 知识库管理面板 */
+.rag-panel {
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rag-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rag-panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rag-panel-status {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: #eef0f4;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.rag-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rag-input-group label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.rag-input-group textarea {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.rag-input-group textarea:focus {
+  border-color: var(--accent);
+}
+
+.rag-url-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.rag-url-row input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.rag-url-row input:focus {
+  border-color: var(--accent);
+}
+
+.rag-btn {
+  padding: 7px 18px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  align-self: flex-start;
+}
+
+.rag-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rag-btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.rag-btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.rag-btn-danger {
+  background: none;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  font-size: 12px;
+  padding: 5px 14px;
+}
+
+.rag-btn-danger:hover {
+  background: #fef2f2;
+}
+
+/* RAG 引用来源折叠块 */
+.rag-sources-block {
+  margin-top: 14px;
+  font-size: 14px;
+}
+
+.rag-sources-summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  outline: none;
+  padding: 6px 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.rag-sources-summary::-webkit-details-marker {
+  display: none;
+}
+
+.rag-sources-summary::before {
+  content: '›';
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text-secondary);
+  transition: transform 0.2s;
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+
+.rag-sources-block[open] .rag-sources-summary::before {
+  transform: rotate(90deg);
+}
+
+.rag-sources-icon {
+  font-size: 14px;
+}
+
+.rag-sources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 0 20px;
+}
+
+.rag-source-item {
+  border: 1px solid #e0e4ea;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fafbfc;
+}
+
+.rag-source-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f4f5f7;
+  font-size: 12px;
+}
+
+.rag-source-index {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.rag-source-score {
+  color: var(--text-secondary);
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 11px;
+}
+
+.rag-source-content {
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.rag-source-meta {
+  padding: 6px 12px;
+  border-top: 1px solid #e8eaef;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rag-meta-tag {
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: #eef0f4;
+  padding: 2px 8px;
+  border-radius: 10px;
+}

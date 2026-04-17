@@ -1,0 +1,50 @@
+---
+description: NestJS 后端开发规范：模块结构、DTO 校验、服务设计
+globs: server/src/**/*.ts
+alwaysApply: false
+---
+
+# NestJS 后端规范
+
+## 模块设计
+
+- 每个功能模块包含 `module`、`controller`、`service`、`dto/` 四部分
+- Controller 只做参数接收和响应格式化，业务逻辑放 Service
+- 使用 `@ApiTags()`、`@ApiOperation()`、`@ApiResponse()` 标注 Swagger 文档
+
+## DTO 校验
+
+使用 `class-validator` + `class-transformer` 校验请求参数：
+
+```typescript
+// BAD: controller 里手动校验
+if (!body.message) throw new BadRequestException();
+
+// GOOD: DTO 声明式校验
+export class ChatRequestDto {
+  @IsString()
+  @IsNotEmpty()
+  message: string;
+}
+```
+
+## Service 拆分原则
+
+当 Service 超过 **300 行**时考虑拆分：
+- 提取独立的工具/辅助 service
+- 将流式处理逻辑提取为独立方法或 service
+- LLM 配置初始化可提取到专用 service（如现有的 `LlmService`）
+
+## SSE 流式响应
+
+统一使用 `text/event-stream` 格式，事件结构：
+
+```typescript
+res.write(`data: ${JSON.stringify({ type: '...', data: ... })}\n\n`);
+```
+
+## 错误处理
+
+- 使用 NestJS 内置异常类（`BadRequestException` 等）
+- 全局异常过滤器 `AllExceptionsFilter` 统一处理
+- 响应拦截器 `TransformInterceptor` 统一包装响应格式

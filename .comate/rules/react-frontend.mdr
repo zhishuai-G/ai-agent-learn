@@ -1,0 +1,60 @@
+---
+description: React 前端开发规范：组件拆分、状态管理、SSE 处理
+globs: web/src/**/*.{ts,tsx,css}
+alwaysApply: false
+---
+
+# React 前端规范
+
+## 组件拆分
+
+单个组件文件不得超过 **500 行**，拆分策略：
+
+```
+web/src/
+  ├── App.tsx              # 主布局 + 路由（精简）
+  ├── components/          # 通用 UI 组件
+  │   ├── MessageBubble.tsx
+  │   ├── ThinkBlock.tsx
+  │   └── ToolCallCard.tsx
+  ├── features/            # 按功能模块组织
+  │   ├── chat/
+  │   ├── agent/
+  │   ├── langgraph/
+  │   └── rag/
+  ├── hooks/               # 自定义 hooks
+  │   └── useStreamChat.ts
+  └── types/               # 共享类型定义
+      └── chat.ts
+```
+
+## 状态管理
+
+- 使用 React `useState` + `useRef` 管理本地状态
+- 复杂逻辑提取为自定义 hook（如 SSE 流式处理）
+- 不可变更新：使用展开运算符创建新对象，不直接 mutation
+
+```typescript
+// GOOD: 不可变更新辅助函数
+function updateLastAssistant(
+  prev: ChatMessage[],
+  updater: (last: ChatMessage) => Partial<ChatMessage>,
+): ChatMessage[] {
+  const last = prev[prev.length - 1]
+  if (!last || last.role !== 'assistant') return prev
+  return [...prev.slice(0, -1), { ...last, ...updater(last) }]
+}
+```
+
+## SSE 流式处理
+
+统一的 SSE 读取模式，使用 `ReadableStream` + `TextDecoder`：
+- 维护 `buffer` 处理不完整的 JSON 行
+- 按 `data:` 前缀解析事件
+- 在 `finally` 块中清理 loading 状态
+
+## CSS 规范
+
+- 使用 CSS 自定义属性（`--bg-primary` 等）统一主题
+- 按功能模块拆分 CSS 文件，避免单文件过大
+- 类名使用 `kebab-case`，组件级前缀防止冲突（如 `rag-panel-*`、`hitl-*`）
