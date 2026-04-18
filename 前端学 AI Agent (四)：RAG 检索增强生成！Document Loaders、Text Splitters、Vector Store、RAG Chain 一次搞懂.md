@@ -787,6 +787,8 @@ LangChain 的 OpenAIEmbeddings 在批量向量化时（embedDocuments），
 设了 batchSize: 25：
   网页分块 → 60 个 chunk → 分 3 批（25 + 25 + 10） → 每批单独请求 → 全部成功 ✅
 ```
+
+```plain
 OpenAIEmbeddings 是 LangChain 对 OpenAI Embedding API 的封装。
 它兼容所有实现了 OpenAI Embedding API 规范的服务——
 包括 OpenAI 原生、阿里云 DashScope、智谱 GLM、Azure OpenAI 等。
