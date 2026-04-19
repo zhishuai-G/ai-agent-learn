@@ -36,9 +36,8 @@ export function useRag(
         body: JSON.stringify({ content: ragDocInput.trim() }),
       })
       const data = await res.json()
+      console.log('[RAG] 文档添加结果:', data)
       if (data.success) {
-        setRagDocInput('')
-        fetchRagStatus()
       }
     } catch { /* ignore */ } finally {
       setRagUploading(false)
@@ -55,9 +54,8 @@ export function useRag(
         body: JSON.stringify({ url: ragUrlInput.trim() }),
       })
       const data = await res.json()
+      console.log('[RAG] 网页文档添加结果:', data)
       if (data.success) {
-        setRagUrlInput('')
-        fetchRagStatus()
       }
     } catch { /* ignore */ } finally {
       setRagUploading(false)
@@ -110,8 +108,13 @@ export function useRag(
               const parsed = JSON.parse(jsonStr)
 
               if (parsed.type === 'source') {
+                const sources = parsed.data as RagSource[]
+                console.log(`[RAG] 检索到 ${sources.length} 个 chunk:`)
+                sources.forEach((src, i) => {
+                  console.log(`  [chunk ${i + 1}] 相似度: ${(1 - src.score).toFixed(3)} | 内容: ${src.content.slice(0, 100).replace(/\n/g, ' ')}...`)
+                })
                 setMessages(prev => updateLastAssistant(prev, () => ({
-                  ragSources: parsed.data as RagSource[],
+                  ragSources: sources,
                 })))
               } else if (parsed.type === 'token') {
                 setMessages(prev => updateLastAssistant(prev, last => ({
