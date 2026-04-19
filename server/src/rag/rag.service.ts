@@ -29,7 +29,7 @@ export class RagService {
       configuration: {
         baseURL: this.configService.get<string>('OPENAI_BASE_URL'),
       },
-      modelName: 'GLM-5',
+      modelName: this.configService.get<string>('OPENAI_MODEL', 'GLM-5'),
       temperature: 0.3, // RAG 场景使用较低温度，让回答更准确
     });
   }
