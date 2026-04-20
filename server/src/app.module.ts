@@ -4,6 +4,7 @@ import { ChatModule } from './chat/chat.module';
 import { AgentModule } from './agent/agent.module';
 import { LangGraphModule } from './langgraph/langgraph.module';
 import { RagModule } from './rag/rag.module';
+import { MultiAgentModule } from './multi-agent/multi-agent.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { RagModule } from './rag/rag.module';
     AgentModule,
     LangGraphModule, // Phase 3: LangGraph Agent 编排引擎
     RagModule, // Phase 4: RAG 检索增强生成
+    MultiAgentModule, // Phase 5: Multi-Agent 多 Agent 协作系统
   ],
 })
 export class AppModule {}
