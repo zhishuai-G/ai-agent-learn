@@ -1,5 +1,25 @@
 import type { Dispatch, SetStateAction } from 'react'
 
+export interface AgentFlowAgent {
+  name: string
+  status: 'pending' | 'active' | 'done'
+}
+
+export interface AgentFlowState {
+  agents: AgentFlowAgent[]
+  handoffs: { from: string; to: string }[]
+}
+
+export const AGENT_DISPLAY_INFO: Record<string, { icon: string; label: string; color: string }> = {
+  pm: { icon: '📋', label: 'PM', color: '#6366f1' },
+  architect: { icon: '🏗️', label: 'Architect', color: '#8b5cf6' },
+  developer: { icon: '💻', label: 'Developer', color: '#059669' },
+  reviewer: { icon: '🔍', label: 'Reviewer', color: '#d97706' },
+  sales: { icon: '💼', label: 'Sales', color: '#2563eb' },
+  tech_support: { icon: '🛠️', label: 'Tech Support', color: '#7c3aed' },
+  supervisor: { icon: '🎯', label: 'Supervisor', color: '#dc2626' },
+}
+
 export interface ToolCallInfo {
   name: string
   args: Record<string, unknown>
@@ -26,10 +46,13 @@ export interface ChatMessage {
   interruptContent?: string
   // Phase 4: RAG
   ragSources?: RagSource[]
+  // Phase 5: Multi-Agent
+  agentName?: string
 }
 
-export type ChatMode = 'chat' | 'agent' | 'langgraph' | 'rag'
+export type ChatMode = 'chat' | 'agent' | 'langgraph' | 'rag' | 'multi-agent'
 export type LangGraphSubMode = 'chat' | 'react' | 'hitl'
+export type MultiAgentSubMode = 'supervisor' | 'swarm'
 export type SetMessages = Dispatch<SetStateAction<ChatMessage[]>>
 
 export const API_BASE = 'http://localhost:3500'
@@ -38,6 +61,12 @@ export const TOOL_DISPLAY_NAME: Record<string, { icon: string; label: string }> 
   get_weather: { icon: '🌤️', label: '天气查询' },
   get_current_time: { icon: '🕐', label: '时间查询' },
   web_search: { icon: '🔍', label: '百科搜索' },
+  // Phase 5: Multi-Agent
+  analyze_requirement: { icon: '📋', label: '需求分析' },
+  design_architecture: { icon: '🏗️', label: '架构设计' },
+  write_code: { icon: '💻', label: '编写代码' },
+  review_code: { icon: '🔍', label: '代码审查' },
+  search: { icon: '🔍', label: '信息搜索' },
 }
 
 export const NODE_DISPLAY_NAME: Record<string, { icon: string; label: string }> = {

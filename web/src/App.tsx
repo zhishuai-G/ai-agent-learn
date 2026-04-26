@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from 'react'
 import './App.css'
 import './styles/features.css'
-import type { ChatMessage, ChatMode, LangGraphSubMode } from './types/chat'
+import './styles/multi-agent.css'
+import type { ChatMessage, ChatMode, LangGraphSubMode, MultiAgentSubMode } from './types/chat'
 import { useStreamChat } from './hooks/use-stream-chat'
 import { useAgentChat } from './hooks/use-agent-chat'
 import { useLangGraphChat } from './hooks/use-langgraph-chat'
 import { useRag } from './hooks/use-rag'
+import { useMultiAgent } from './hooks/use-multi-agent'
 import { MessageList } from './components/message-list'
+import { AgentFlow } from './components/agent-flow'
 
 function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -17,6 +20,7 @@ function App() {
   const [deepThink, setDeepThink] = useState(false)
   const [mode, setMode] = useState<ChatMode>('langgraph')
   const [lgSubMode, setLgSubMode] = useState<LangGraphSubMode>('react')
+  const [multiAgentSubMode, setMultiAgentSubMode] = useState<MultiAgentSubMode>('supervisor')
   const [threadId, setThreadId] = useState<string>(() => `thread-${Date.now()}`)
   const [pendingResume, setPendingResume] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -27,6 +31,7 @@ function App() {
   const { handleChat: langGraphChatHandler, handleResume: langGraphResumeHandler } =
     useLangGraphChat(messages, setMessages, setLoading, setPendingResume)
   const rag = useRag(messages, setMessages, setLoading, mode === 'rag')
+  const multiAgent = useMultiAgent(messages, setMessages, setLoading)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -38,7 +43,8 @@ function App() {
     setInput('')
     setMessages(prev => [...prev, { role: 'user', content: userMessage }])
 
-    if (mode === 'rag') rag.handleRagChat(userMessage)
+    if (mode === 'multi-agent') multiAgent.handleChat(userMessage, multiAgentSubMode, threadId)
+    else if (mode === 'rag') rag.handleRagChat(userMessage)
     else if (mode === 'langgraph') langGraphChatHandler(userMessage, { lgSubMode, threadId, systemPrompt })
     else if (mode === 'agent') agentChatHandler(userMessage, systemPrompt)
     else streamChatHandler(userMessage, systemPrompt, deepThink)
@@ -59,15 +65,18 @@ function App() {
     setMessages([])
     setPendingResume(null)
     setThreadId(`thread-${Date.now()}`)
+    multiAgent.resetFlow()
   }
 
-  const headerTitle = mode === 'rag'
-    ? 'Phase 4 (RAG)'
-    : mode === 'langgraph'
-      ? `Phase 3 (LangGraph - ${lgSubMode === 'chat' ? 'StateGraph' : lgSubMode === 'react' ? 'ReAct' : 'HiTL'})`
-      : mode === 'agent'
-        ? 'Phase 2 (Tool Use)'
-        : 'Phase 1'
+  const headerTitle = mode === 'multi-agent'
+    ? `Phase 5 (Multi-Agent - ${multiAgentSubMode === 'supervisor' ? 'Supervisor' : 'Swarm'})`
+    : mode === 'rag'
+      ? 'Phase 4 (RAG)'
+      : mode === 'langgraph'
+        ? `Phase 3 (LangGraph - ${lgSubMode === 'chat' ? 'StateGraph' : lgSubMode === 'react' ? 'ReAct' : 'HiTL'})`
+        : mode === 'agent'
+          ? 'Phase 2 (Tool Use)'
+          : 'Phase 1'
 
   return (
     <div className="chat-app">
@@ -92,7 +101,7 @@ function App() {
             rows={3}
             placeholder="设定 AI 的角色和行为..."
           />
-          {mode === 'langgraph' && (
+          {(mode === 'langgraph' || mode === 'multi-agent') && (
             <div className="settings-thread">
               <label>Thread ID（对话线程）</label>
               <div className="thread-id-row">
@@ -169,13 +178,22 @@ function App() {
         </div>
       )}
 
+      {/* Phase 5: Multi-Agent 协作可视化 */}
+      {mode === 'multi-agent' && multiAgent.agentFlow && (
+        <AgentFlow flow={multiAgent.agentFlow} subMode={multiAgentSubMode} />
+      )}
+
       {/* Messages */}
       <main className="chat-messages">
         {messages.length === 0 && (
           <div className="empty-state">
             <p>👋 发送一条消息开始聊天</p>
             <p className="hint">
-              {mode === 'rag'
+              {mode === 'multi-agent'
+                ? multiAgentSubMode === 'supervisor'
+                  ? 'Supervisor 模式：描述需求，PM→Architect→Developer→Reviewer 自动协作完成开发任务'
+                  : 'Swarm 模式：发送消息，Sales 和 Tech Support 根据意图自动交接处理'
+                : mode === 'rag'
                 ? 'RAG 模式：先在知识库中添加文档，然后基于文档内容提问，AI 会引用来源回答'
                 : mode === 'langgraph'
                   ? lgSubMode === 'hitl'
@@ -201,7 +219,11 @@ function App() {
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
-              mode === 'rag'
+              mode === 'multi-agent'
+                ? multiAgentSubMode === 'supervisor'
+                  ? '描述你的开发需求，如：开发一个用户登录功能'
+                  : '试试问：这个产品多少钱？/ 我的代码报错了怎么办？'
+                : mode === 'rag'
                 ? '基于知识库内容提问，如：这篇文档讲了什么？'
                 : mode === 'langgraph'
                   ? lgSubMode === 'hitl'
@@ -228,6 +250,17 @@ function App() {
               <button className={`btn-tool ${mode === 'rag' ? 'active' : ''}`} onClick={() => setMode('rag')} title="Phase 4: RAG 检索增强生成">
                 📚 RAG
               </button>
+              <button className={`btn-tool ${mode === 'multi-agent' ? 'active' : ''}`} onClick={() => setMode('multi-agent')} title="Phase 5: Multi-Agent 多智能体协作">
+                🤝 Multi-Agent
+              </button>
+
+              {mode === 'multi-agent' && (
+                <div className="lg-submode-group">
+                  <span className="lg-submode-divider">|</span>
+                  <button className={`btn-tool btn-tool-sm ${multiAgentSubMode === 'supervisor' ? 'active' : ''}`} onClick={() => setMultiAgentSubMode('supervisor')}>Supervisor</button>
+                  <button className={`btn-tool btn-tool-sm ${multiAgentSubMode === 'swarm' ? 'active' : ''}`} onClick={() => setMultiAgentSubMode('swarm')}>Swarm</button>
+                </div>
+              )}
 
               {mode === 'chat' && (
                 <button className={`btn-tool ${deepThink ? 'active' : ''}`} onClick={() => setDeepThink(!deepThink)} title="深度思考">

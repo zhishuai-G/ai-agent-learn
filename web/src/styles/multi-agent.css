@@ -1,0 +1,139 @@
+/* ======= Phase 5: Multi-Agent UI ======= */
+
+/* Agent Flow 可视化面板 */
+.agent-flow-panel {
+  padding: 14px 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.agent-flow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.agent-flow-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.agent-flow-handoff-count {
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: #eef0f4;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.agent-flow-pipeline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* Agent 卡片 */
+.agent-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--bg-primary);
+  min-width: 90px;
+  transition: all 0.3s;
+}
+
+.agent-card-pending {
+  opacity: 0.45;
+}
+
+.agent-card-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(77, 107, 254, 0.15);
+}
+
+.agent-card-done {
+  border-color: #059669;
+  background: #f0fdf4;
+}
+
+.agent-card-icon {
+  font-size: 20px;
+}
+
+.agent-card-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.agent-card-status {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.agent-card-status-active {
+  color: var(--accent);
+  animation: nodePulse 1s ease-in-out infinite;
+}
+
+.agent-card-status-done {
+  color: #059669;
+}
+
+.agent-card-status-pending {
+  color: #ccc;
+}
+
+/* Agent 间箭头 */
+.agent-flow-arrow {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin: 0 2px;
+  user-select: none;
+}
+
+/* 交接历史 */
+.agent-flow-handoffs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  justify-content: center;
+}
+
+.agent-flow-handoff-item {
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: #eef0f4;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* Agent 消息标识 */
+.agent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  padding: 2px 10px;
+  border-radius: 10px;
+  background: #f0f4ff;
+}
+
+/* Agent 头像背景色 */
+.agent-avatar-supervisor { background: #fef2f2; }
+.agent-avatar-pm { background: #eef2ff; }
+.agent-avatar-architect { background: #f5f3ff; }
+.agent-avatar-developer { background: #ecfdf5; }
+.agent-avatar-reviewer { background: #fffbeb; }
+.agent-avatar-sales { background: #eff6ff; }
+.agent-avatar-tech_support { background: #f5f3ff; }

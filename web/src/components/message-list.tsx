@@ -1,5 +1,5 @@
 import type { ChatMessage } from '../types/chat'
-import { TOOL_DISPLAY_NAME, NODE_DISPLAY_NAME } from '../types/chat'
+import { TOOL_DISPLAY_NAME, NODE_DISPLAY_NAME, AGENT_DISPLAY_INFO } from '../types/chat'
 
 interface MessageListProps {
   messages: ChatMessage[]
@@ -12,10 +12,15 @@ export function MessageList({ messages, loading, onResume }: MessageListProps) {
     <>
       {messages.map((msg, i) => (
         <div key={i} className={`message ${msg.role}`}>
-          <div className="message-avatar">
-            {msg.role === 'user' ? '👤' : '🤖'}
+          <div className={`message-avatar ${msg.agentName ? `agent-avatar-${msg.agentName}` : ''}`}>
+            {msg.role === 'user' ? '👤' : msg.agentName ? (AGENT_DISPLAY_INFO[msg.agentName]?.icon || '🤖') : '🤖'}
           </div>
           <div className="message-content">
+            {msg.agentName && (
+              <span className="agent-badge" style={{ color: AGENT_DISPLAY_INFO[msg.agentName]?.color }}>
+                {AGENT_DISPLAY_INFO[msg.agentName]?.icon} {AGENT_DISPLAY_INFO[msg.agentName]?.label || msg.agentName}
+              </span>
+            )}
             <div className="message-bubble">
               {/* Think Block - 统一的思考过程折叠区域 */}
               {(msg.isThinking || msg.thinkContent || msg.thinkDuration != null || (msg.toolCalls && msg.toolCalls.length > 0)) && (
