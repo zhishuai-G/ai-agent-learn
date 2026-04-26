@@ -1,6 +1,6 @@
 ---
 name: ai-agent-learning-roadmap
-description: 前端 AI Agent 方向学习路线指导。技术栈：React + NestJS + LangGraph + LangChain.js。当用户询问 AI Agent 学习路线、学习规划、技术选型，或在 ai-langgraph 项目中需要学习指导时使用此 skill。涵盖：LLM 基础、LangChain.js、LangGraph Agent 编排、RAG 检索增强生成、Multi-Agent 多智能体协作、全栈 AI 应用工程化。
+description: 前端 AI Agent 方向学习路线指导。技术栈：React + NestJS + LangGraph + LangChain.js。当用户询问 AI Agent 学习路线、学习规划、技术选型，或在 ai-langgraph 项目中需要学习指导时使用此 skill。涵盖：LLM 基础、LangChain.js、LangGraph Agent 编排、RAG 检索增强生成、Multi-Agent 多智能体协作、MCP 工具协议、全栈 AI 应用工程化。
 ---
 
 # 前端 AI Agent 学习路线
@@ -9,7 +9,7 @@ description: 前端 AI Agent 方向学习路线指导。技术栈：React + Nest
 
 ## 学习路线总览
 
-共 6 个阶段，每阶段包含知识点 + 练习项目，循序渐进：
+共 7 个阶段，每阶段包含知识点 + 练习项目，循序渐进：
 
 ```
 Phase 1: AI 基础与 LLM 核心概念
@@ -32,7 +32,11 @@ Phase 5: Multi-Agent 系统
   └→ Supervisor 模式、Swarm 模式、Agent 间通信
   └→ 项目: AI 开发团队（多 Agent 协作）
 
-Phase 6: 全栈 AI 应用工程化
+Phase 6: MCP - 工具协议与标准化
+  └→ MCP 协议原理、MCP Server/Client 开发、工具动态发现
+  └→ 项目: 将 Phase 2-5 的硬编码工具改造为 MCP Server
+
+Phase 7: 全栈 AI 应用工程化
   └→ Chat UI、Vercel AI SDK、NestJS 架构、生产化、可观测性
   └→ 毕业项目: AI 全栈工作台
 ```
@@ -49,6 +53,7 @@ Phase 6: 全栈 AI 应用工程化
   "langchain": "高层 Chain/Agent",
   "ai": "Vercel AI SDK (前端流式处理)",
   "@ai-sdk/openai": "Vercel AI SDK OpenAI 适配",
+  "@modelcontextprotocol/sdk": "MCP 官方 SDK (工具协议)",
   "zod": "Schema 定义 (工具参数、输出格式)"
 }
 ```
@@ -83,7 +88,9 @@ Phase 6: 全栈 AI 应用工程化
   - 文档处理管线、向量数据库选型、检索策略、Agentic RAG / Self-RAG / CRAG
 - **Phase 5 - Multi-Agent**: 查看 [references/phase5-multi-agent.md](references/phase5-multi-agent.md)
   - Supervisor 模式、Swarm 模式、Agent 间通信
-- **Phase 6 - 全栈工程化**: 查看 [references/phase6-fullstack.md](references/phase6-fullstack.md)
+- **Phase 6 - MCP 工具协议**: 查看 [references/phase6-mcp.md](references/phase6-mcp.md)
+  - MCP 协议原理、Server/Client 开发、工具动态发现、与 LangGraph 集成
+- **Phase 7 - 全栈工程化**: 查看 [references/phase7-fullstack.md](references/phase7-fullstack.md)
   - Chat UI 组件体系、Vercel AI SDK、NestJS 架构、生产化、可观测性
 
 ## 学习资源
