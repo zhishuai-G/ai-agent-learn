@@ -3,6 +3,7 @@ import './App.css'
 import './styles/features.css'
 import './styles/multi-agent.css'
 import './styles/mcp.css'
+import './styles/markdown.css'
 import type { ChatMessage, ChatMode, LangGraphSubMode, MultiAgentSubMode } from './types/chat'
 import { useStreamChat } from './hooks/use-stream-chat'
 import { useAgentChat } from './hooks/use-agent-chat'
@@ -12,6 +13,7 @@ import { useMultiAgent } from './hooks/use-multi-agent'
 import { useMcp } from './hooks/use-mcp'
 import { MessageList } from './components/message-list'
 import { AgentFlow } from './components/agent-flow'
+import { InputArea } from './components/input-area'
 
 function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -54,13 +56,6 @@ function App() {
     else streamChatHandler(userMessage, systemPrompt, deepThink)
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
-    }
-  }
-
   const handleResume = () => {
     if (pendingResume) langGraphResumeHandler(pendingResume)
   }
@@ -83,6 +78,24 @@ function App() {
         : mode === 'agent'
           ? 'Phase 2 (Tool Use)'
           : 'Phase 1'
+
+  const emptyHint = mode === 'mcp'
+    ? 'MCP 模式：工具通过协议动态发现，不再硬编码。试试问天气、时间、百科搜索'
+    : mode === 'multi-agent'
+    ? multiAgentSubMode === 'supervisor'
+      ? 'Supervisor 模式：描述需求，PM→Architect→Developer→Reviewer 自动协作完成开发任务'
+      : 'Swarm 模式：发送消息，Sales 和 Tech Support 根据意图自动交接处理'
+    : mode === 'rag'
+    ? 'RAG 模式：先在知识库中添加文档，然后基于文档内容提问，AI 会引用来源回答'
+    : mode === 'langgraph'
+      ? lgSubMode === 'hitl'
+        ? 'Human-in-the-Loop 模式：AI 调用工具前会暂停，等你确认后再执行'
+        : lgSubMode === 'react'
+          ? 'ReAct Agent 模式：一行代码创建的 Agent，内置 Tool Use 循环 + 对话记忆'
+          : 'StateGraph 模式：手动构建的状态图 Agent，展示 Node/Edge/条件路由'
+      : mode === 'agent'
+        ? '智能助手模式：AI 可以调用工具查实时天气、查世界时间、搜索百科知识'
+        : '按 Enter 发送，开启「深度思考」获得更详细的推理'
 
   return (
     <div className="chat-app">
@@ -212,25 +225,7 @@ function App() {
         {messages.length === 0 && (
           <div className="empty-state">
             <p>👋 发送一条消息开始聊天</p>
-            <p className="hint">
-              {mode === 'mcp'
-                ? 'MCP 模式：工具通过协议动态发现，不再硬编码。试试问天气、时间、百科搜索'
-                : mode === 'multi-agent'
-                ? multiAgentSubMode === 'supervisor'
-                  ? 'Supervisor 模式：描述需求，PM→Architect→Developer→Reviewer 自动协作完成开发任务'
-                  : 'Swarm 模式：发送消息，Sales 和 Tech Support 根据意图自动交接处理'
-                : mode === 'rag'
-                ? 'RAG 模式：先在知识库中添加文档，然后基于文档内容提问，AI 会引用来源回答'
-                : mode === 'langgraph'
-                  ? lgSubMode === 'hitl'
-                    ? 'Human-in-the-Loop 模式：AI 调用工具前会暂停，等你确认后再执行'
-                    : lgSubMode === 'react'
-                      ? 'ReAct Agent 模式：一行代码创建的 Agent，内置 Tool Use 循环 + 对话记忆'
-                      : 'StateGraph 模式：手动构建的状态图 Agent，展示 Node/Edge/条件路由'
-                  : mode === 'agent'
-                    ? '智能助手模式：AI 可以调用工具查实时天气、查世界时间、搜索百科知识'
-                    : '按 Enter 发送，开启「深度思考」获得更详细的推理'}
-            </p>
+            <p className="hint">{emptyHint}</p>
           </div>
         )}
         <MessageList messages={messages} loading={loading} onResume={handleResume} />
@@ -238,99 +233,24 @@ function App() {
       </main>
 
       {/* Input */}
-      <footer className="chat-input">
-        <div className="input-card">
-          <textarea
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              mode === 'mcp'
-                ? '试试问：北京天气怎么样？/ 纽约现在几点？（工具通过 MCP 动态发现）'
-                : mode === 'multi-agent'
-                ? multiAgentSubMode === 'supervisor'
-                  ? '描述你的开发需求，如：开发一个用户登录功能'
-                  : '试试问：这个产品多少钱？/ 我的代码报错了怎么办？'
-                : mode === 'rag'
-                ? '基于知识库内容提问，如：这篇文档讲了什么？'
-                : mode === 'langgraph'
-                  ? lgSubMode === 'hitl'
-                    ? '试试问：北京天气怎么样？（AI 会暂停等你确认）'
-                    : '试试问：北京天气怎么样？/ 纽约现在几点？/ 什么是 LangChain？'
-                  : mode === 'agent'
-                    ? '试试问：北京天气怎么样？/ 纽约现在几点？/ 什么是 LangChain？'
-                    : '给 AI 发送消息'
-            }
-            rows={1}
-            disabled={loading || !!pendingResume}
-          />
-          <div className="input-bottom">
-            <div className="input-tools">
-              <button className={`btn-tool ${mode === 'chat' ? 'active' : ''}`} onClick={() => setMode('chat')} title="Phase 1: 普通聊天">
-                💬 聊天
-              </button>
-              <button className={`btn-tool ${mode === 'agent' ? 'active' : ''}`} onClick={() => setMode('agent')} title="Phase 2: Tool Use Agent">
-                🛠️ Agent
-              </button>
-              <button className={`btn-tool ${mode === 'langgraph' ? 'active' : ''}`} onClick={() => setMode('langgraph')} title="Phase 3: LangGraph">
-                📊 LangGraph
-              </button>
-              <button className={`btn-tool ${mode === 'rag' ? 'active' : ''}`} onClick={() => setMode('rag')} title="Phase 4: RAG 检索增强生成">
-                📚 RAG
-              </button>
-              <button className={`btn-tool ${mode === 'multi-agent' ? 'active' : ''}`} onClick={() => setMode('multi-agent')} title="Phase 5: Multi-Agent 多智能体协作">
-                🤝 Multi-Agent
-              </button>
-              <button className={`btn-tool ${mode === 'mcp' ? 'active' : ''}`} onClick={() => setMode('mcp')} title="Phase 6: MCP 工具协议">
-                🔌 MCP
-              </button>
-
-              {mode === 'multi-agent' && (
-                <div className="lg-submode-group">
-                  <span className="lg-submode-divider">|</span>
-                  <button className={`btn-tool btn-tool-sm ${multiAgentSubMode === 'supervisor' ? 'active' : ''}`} onClick={() => setMultiAgentSubMode('supervisor')}>Supervisor</button>
-                  <button className={`btn-tool btn-tool-sm ${multiAgentSubMode === 'swarm' ? 'active' : ''}`} onClick={() => setMultiAgentSubMode('swarm')}>Swarm</button>
-                </div>
-              )}
-
-              {mode === 'chat' && (
-                <button className={`btn-tool ${deepThink ? 'active' : ''}`} onClick={() => setDeepThink(!deepThink)} title="深度思考">
-                  💭 深度思考
-                </button>
-              )}
-
-              {mode === 'langgraph' && (
-                <div className="lg-submode-group">
-                  <span className="lg-submode-divider">|</span>
-                  <button className={`btn-tool btn-tool-sm ${lgSubMode === 'chat' ? 'active' : ''}`} onClick={() => setLgSubMode('chat')} title="自定义 StateGraph">StateGraph</button>
-                  <button className={`btn-tool btn-tool-sm ${lgSubMode === 'react' ? 'active' : ''}`} onClick={() => setLgSubMode('react')} title="预构建 ReAct Agent">ReAct</button>
-                  <button className={`btn-tool btn-tool-sm ${lgSubMode === 'hitl' ? 'active' : ''}`} onClick={() => setLgSubMode('hitl')} title="Human-in-the-Loop">HiTL</button>
-                </div>
-              )}
-
-              {mode === 'rag' && (
-                <div className="lg-submode-group">
-                  <span className="lg-submode-divider">|</span>
-                  <button
-                    className={`btn-tool btn-tool-sm ${rag.showRagPanel ? 'active' : ''}`}
-                    onClick={() => rag.setShowRagPanel(!rag.showRagPanel)}
-                    title="管理知识库"
-                  >
-                    {rag.ragDocCount > 0 ? `知识库 (${rag.ragDocCount})` : '知识库'}
-                  </button>
-                </div>
-              )}
-            </div>
-            <button
-              className="btn-send-round"
-              onClick={handleSend}
-              disabled={!input.trim() || loading || !!pendingResume}
-            >
-              {loading ? '⏳' : '↑'}
-            </button>
-          </div>
-        </div>
-      </footer>
+      <InputArea
+        input={input}
+        setInput={setInput}
+        onSend={handleSend}
+        loading={loading}
+        pendingResume={!!pendingResume}
+        mode={mode}
+        setMode={setMode}
+        lgSubMode={lgSubMode}
+        setLgSubMode={setLgSubMode}
+        multiAgentSubMode={multiAgentSubMode}
+        setMultiAgentSubMode={setMultiAgentSubMode}
+        deepThink={deepThink}
+        setDeepThink={setDeepThink}
+        ragDocCount={rag.ragDocCount}
+        showRagPanel={rag.showRagPanel}
+        setShowRagPanel={rag.setShowRagPanel}
+      />
     </div>
   )
 }

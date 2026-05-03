@@ -1,17 +1,17 @@
-# Phase 6: 全栈 AI 应用工程化
+# Phase 7: 全栈 AI 应用工程化
 
 ## 目录
 
-- [6.1 AI Chat UI 组件体系](#61-ai-chat-ui-组件体系)
-- [6.2 Vercel AI SDK 集成](#62-vercel-ai-sdk-集成)
-- [6.3 NestJS 后端架构](#63-nestjs-后端架构)
-- [6.4 生产化关键问题](#64-生产化关键问题)
-- [6.5 可观测性与调试](#65-可观测性与调试)
-- [6.6 毕业项目](#66-毕业项目)
+- [7.1 AI Chat UI 组件体系](#71-ai-chat-ui-组件体系)
+- [7.2 Vercel AI SDK 集成](#72-vercel-ai-sdk-集成)
+- [7.3 NestJS 后端架构](#73-nestjs-后端架构)
+- [7.4 生产化关键问题](#74-生产化关键问题)
+- [7.5 可观测性与调试](#75-可观测性与调试)
+- [7.6 毕业项目](#76-毕业项目)
 
 ---
 
-## 6.1 AI Chat UI 组件体系
+## 7.1 AI Chat UI 组件体系
 
 ### 核心组件
 
@@ -71,7 +71,7 @@ function useAutoScroll(dep: unknown) {
 
 ---
 
-## 6.2 Vercel AI SDK 集成
+## 7.2 Vercel AI SDK 集成
 
 ### 核心能力
 
@@ -120,7 +120,7 @@ export class ChatController {
 
 ---
 
-## 6.3 NestJS 后端架构
+## 7.3 NestJS 后端架构
 
 ### 推荐模块结构
 
@@ -174,7 +174,7 @@ export class ChatGateway {
 
 ---
 
-## 6.4 生产化关键问题
+## 7.4 生产化关键问题
 
 ### Token 用量管理
 
@@ -213,7 +213,7 @@ try {
 
 ---
 
-## 6.5 可观测性与调试
+## 7.5 可观测性与调试
 
 ### LangSmith (推荐)
 
@@ -235,7 +235,7 @@ LANGCHAIN_PROJECT=my-agent
 
 ---
 
-## 6.6 毕业项目
+## 7.6 毕业项目
 
 ### 项目: AI 全栈工作台
 
@@ -247,7 +247,7 @@ LANGCHAIN_PROJECT=my-agent
 3. **自定义 Agent**: 用户可配置 Agent 的工具和 prompt
 4. **Multi-Agent 工作流**: 可视化编排多个 Agent 协作
 5. **对话管理**: 多会话、历史记录、分享
-6. **实时可视化**: Agent 执行过程实时展示
+7. **实时可视化**: Agent 执行过程实时展示
 
 **技术栈整合**:
 - **前端**: React + shadcn/ui + Vercel AI SDK + ReactFlow (图可视化)

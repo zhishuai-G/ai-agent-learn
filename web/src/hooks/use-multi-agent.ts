@@ -1,6 +1,7 @@
 import { useState, useRef, type Dispatch, type SetStateAction } from 'react'
 import type { ChatMessage, SetMessages, MultiAgentSubMode, AgentFlowState } from '../types/chat'
 import { API_BASE, updateLastAssistant } from '../types/chat'
+import { readSSE } from '../utils/sse'
 
 // LangGraph 内部路由节点，不需要创建消息
 const INTERNAL_AGENT_NODES = new Set(['__start__', '__end__', 'tools', 'supervisor'])
@@ -18,43 +19,6 @@ function mapHandoffAgent(name: string, subMode: MultiAgentSubMode): string | nul
   if (['__start__', '__end__', 'tools'].includes(name)) return null
   if (name === 'agent') return subMode === 'supervisor' ? 'supervisor' : null
   return name
-}
-
-// SSE 读取：从 ReadableStream 解析 data: JSON 行
-async function readSSE(
-  res: Response,
-  onEvent: (parsed: Record<string, unknown>) => void | 'stop',
-) {
-  const reader = res.body?.getReader()
-  const decoder = new TextDecoder()
-  if (!reader) throw new Error('No reader available')
-
-  let buffer = ''
-
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = ''
-
-    for (const line of lines) {
-      const trimmed = line.trim()
-      if (trimmed.startsWith('data:')) {
-        try {
-          const jsonStr = trimmed.slice(5).trim()
-          const parsed = JSON.parse(jsonStr)
-          const result = onEvent(parsed)
-          if (result === 'stop') return
-        } catch {
-          buffer += line + '\n'
-        }
-      } else {
-        if (trimmed) buffer += line + '\n'
-      }
-    }
-  }
 }
 
 // 确保当前 Agent 的消息存在，然后更新它

@@ -55,7 +55,9 @@ export type LangGraphSubMode = 'chat' | 'react' | 'hitl'
 export type MultiAgentSubMode = 'supervisor' | 'swarm'
 export type SetMessages = Dispatch<SetStateAction<ChatMessage[]>>
 
-export const API_BASE = 'http://localhost:3500'
+// 开发环境通过 Vite proxy 代理到后端 (localhost:3000)
+// 生产环境需要配置 nginx 或 CDN 反向代理
+export const API_BASE = '/api'
 
 export const TOOL_DISPLAY_NAME: Record<string, { icon: string; label: string }> = {
   get_weather: { icon: '🌤️', label: '天气查询' },

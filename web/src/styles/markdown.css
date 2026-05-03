@@ -1,0 +1,110 @@
+/* Phase 7: Markdown 渲染样式 */
+
+.markdown-body {
+  font-size: 15px;
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+.markdown-body p {
+  margin: 0 0 10px;
+}
+
+.markdown-body p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  margin: 16px 0 8px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.markdown-body h1 { font-size: 1.4em; }
+.markdown-body h2 { font-size: 1.2em; }
+.markdown-body h3 { font-size: 1.1em; }
+
+.markdown-body ul,
+.markdown-body ol {
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.markdown-body li {
+  margin: 4px 0;
+}
+
+.markdown-body blockquote {
+  margin: 8px 0;
+  padding: 8px 16px;
+  border-left: 3px solid var(--accent);
+  background: #f8f9fa;
+  border-radius: 0 6px 6px 0;
+  color: var(--text-secondary);
+}
+
+.markdown-body table {
+  border-collapse: collapse;
+  margin: 8px 0;
+  width: 100%;
+  font-size: 14px;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.markdown-body th {
+  background: #f4f5f7;
+  font-weight: 600;
+}
+
+.markdown-body code {
+  background: #f0f1f3;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.markdown-body pre {
+  margin: 8px 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.markdown-body pre div {
+  /* react-syntax-highlighter 的 PreTag=div */
+  border-radius: 8px !important;
+  font-size: 13px !important;
+}
+
+.markdown-body a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.markdown-body a:hover {
+  text-decoration: underline;
+}
+
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 12px 0;
+}
+
+.markdown-body img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+/* 让 message-bubble 中使用 markdown-body 时不要 pre-wrap（markdown 自己处理换行） */
+.message.assistant .message-bubble:has(.markdown-body) {
+  white-space: normal;
+}

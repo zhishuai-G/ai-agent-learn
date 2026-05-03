@@ -1,48 +1,12 @@
 import { useState } from 'react'
 import type { ChatMessage, SetMessages } from '../types/chat'
 import { API_BASE, updateLastAssistant, TOOL_DISPLAY_NAME } from '../types/chat'
+import { readSSE } from '../utils/sse'
 
 // MCP 工具信息
 export interface McpToolInfo {
   name: string
   description: string
-}
-
-// SSE 读取：从 ReadableStream 解析 data: JSON 行
-async function readSSE(
-  res: Response,
-  onEvent: (parsed: Record<string, unknown>) => void | 'stop',
-) {
-  const reader = res.body?.getReader()
-  const decoder = new TextDecoder()
-  if (!reader) throw new Error('No reader available')
-
-  let buffer = ''
-
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = ''
-
-    for (const line of lines) {
-      const trimmed = line.trim()
-      if (trimmed.startsWith('data:')) {
-        try {
-          const jsonStr = trimmed.slice(5).trim()
-          const parsed = JSON.parse(jsonStr)
-          const result = onEvent(parsed)
-          if (result === 'stop') return
-        } catch {
-          buffer += line + '\n'
-        }
-      } else {
-        if (trimmed) buffer += line + '\n'
-      }
-    }
-  }
 }
 
 export function useMcp(

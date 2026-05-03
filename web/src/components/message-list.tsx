@@ -1,5 +1,7 @@
 import type { ChatMessage } from '../types/chat'
-import { TOOL_DISPLAY_NAME, NODE_DISPLAY_NAME, AGENT_DISPLAY_INFO } from '../types/chat'
+import { AGENT_DISPLAY_INFO } from '../types/chat'
+import { UserMessage } from './user-message'
+import { AssistantMessage } from './assistant-message'
 
 interface MessageListProps {
   messages: ChatMessage[]
@@ -16,130 +18,10 @@ export function MessageList({ messages, loading, onResume }: MessageListProps) {
             {msg.role === 'user' ? '👤' : msg.agentName ? (AGENT_DISPLAY_INFO[msg.agentName]?.icon || '🤖') : '🤖'}
           </div>
           <div className="message-content">
-            {msg.agentName && (
-              <span className="agent-badge" style={{ color: AGENT_DISPLAY_INFO[msg.agentName]?.color }}>
-                {AGENT_DISPLAY_INFO[msg.agentName]?.icon} {AGENT_DISPLAY_INFO[msg.agentName]?.label || msg.agentName}
-              </span>
-            )}
-            <div className="message-bubble">
-              {/* Think Block - 统一的思考过程折叠区域 */}
-              {(msg.isThinking || msg.thinkContent || msg.thinkDuration != null || (msg.toolCalls && msg.toolCalls.length > 0)) && (
-                <details className="think-block" open>
-                  <summary>
-                    {msg.isThinking ? (
-                      <span className="think-status thinking">正在思考...</span>
-                    ) : (
-                      <span className="think-status">
-                        已思考{msg.thinkDuration ? `（用时 ${msg.thinkDuration} 秒）` : ''}
-                      </span>
-                    )}
-                  </summary>
-                  <div className="think-content">
-                    {msg.thinkContent && <div className="think-text">{msg.thinkContent}</div>}
-
-                    {/* Phase 3: 图节点执行指示器 */}
-                    {msg.activeNode && (
-                      <div className="graph-node-indicator">
-                        <span className="graph-node-icon">
-                          {NODE_DISPLAY_NAME[msg.activeNode]?.icon || '⚡'}
-                        </span>
-                        <span className="graph-node-label">
-                          {NODE_DISPLAY_NAME[msg.activeNode]?.label || msg.activeNode}
-                        </span>
-                        <span className="graph-node-dot" />
-                      </div>
-                    )}
-
-                    {/* Phase 2 + Phase 3: 工具调用 */}
-                    {msg.toolCalls && msg.toolCalls.length > 0 && (
-                      <div className="tool-calls-chain">
-                        {msg.toolCalls.map((tc, j) => {
-                          const display = TOOL_DISPLAY_NAME[tc.name] || { icon: '🔧', label: tc.name }
-                          return (
-                            <details key={j} className="tool-call-block" open>
-                              <summary className="tool-call-header">
-                                <span className="tool-call-icon">{display.icon}</span>
-                                <span className="tool-call-name">{display.label}</span>
-                                <span className={`tool-call-status ${tc.status}`}>
-                                  {tc.status === 'calling' ? '调用中...' : '已完成'}
-                                </span>
-                              </summary>
-                              <div className="tool-call-body">
-                                <div className="tool-call-args">
-                                  <span className="tool-call-label">参数</span>
-                                  <code>{JSON.stringify(tc.args, null, 2)}</code>
-                                </div>
-                                {tc.result && (
-                                  <div className="tool-call-result">
-                                    <span className="tool-call-label">结果</span>
-                                    <div className="tool-call-result-text">{tc.result}</div>
-                                  </div>
-                                )}
-                              </div>
-                            </details>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </details>
-              )}
-
-              {/* Phase 3: Human-in-the-Loop 中断确认面板 */}
-              {msg.interrupted && (
-                <div className="hitl-interrupt-panel">
-                  <div className="hitl-interrupt-header">
-                    <span className="hitl-interrupt-icon">⏸️</span>
-                    <span className="hitl-interrupt-title">等待确认</span>
-                  </div>
-                  <p className="hitl-interrupt-desc">
-                    Agent 想要执行上述工具调用，请确认是否继续执行。
-                  </p>
-                  <div className="hitl-interrupt-actions">
-                    <button
-                      className="hitl-btn hitl-btn-approve"
-                      onClick={onResume}
-                      disabled={loading}
-                    >
-                      ✅ 确认执行
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Main Content */}
-              {msg.content || (loading && i === messages.length - 1 && !msg.interrupted ? '▍' : '')}
-
-              {/* Phase 4: RAG 引用来源 */}
-              {msg.ragSources && msg.ragSources.length > 0 && msg.content && (
-                <details className="rag-sources-block">
-                  <summary className="rag-sources-summary">
-                    <span className="rag-sources-icon">📚</span>
-                    <span>引用来源（{msg.ragSources.length} 个文档块）</span>
-                  </summary>
-                  <div className="rag-sources-list">
-                    {msg.ragSources.map((src, j) => (
-                      <div key={j} className="rag-source-item">
-                        <div className="rag-source-header">
-                          <span className="rag-source-index">[{j + 1}]</span>
-                          <span className="rag-source-score">
-                            相似度: {(1 - src.score).toFixed(3)}
-                          </span>
-                        </div>
-                        <div className="rag-source-content">{src.content}</div>
-                        {src.metadata && Object.keys(src.metadata).length > 0 && (
-                          <div className="rag-source-meta">
-                            {Object.entries(src.metadata).map(([k, v]) => (
-                              <span key={k} className="rag-meta-tag">{k}: {String(v)}</span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </details>
-              )}
-            </div>
+            {msg.role === 'user'
+              ? <UserMessage content={msg.content} />
+              : <AssistantMessage message={msg} loading={loading} isLast={i === messages.length - 1} onResume={onResume} />
+            }
           </div>
         </div>
       ))}
