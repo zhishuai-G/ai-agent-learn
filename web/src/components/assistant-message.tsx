@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
@@ -12,7 +13,7 @@ interface AssistantMessageProps {
   onResume: () => void
 }
 
-export function AssistantMessage({ message: msg, loading, isLast, onResume }: AssistantMessageProps) {
+export const AssistantMessage = memo(function AssistantMessage({ message: msg, loading, isLast, onResume }: AssistantMessageProps) {
   return (
     <>
       {msg.agentName && (
@@ -173,4 +174,4 @@ export function AssistantMessage({ message: msg, loading, isLast, onResume }: As
       </div>
     </>
   )
-}
+})

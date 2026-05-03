@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { ChatMessage } from '../types/chat'
 import { AGENT_DISPLAY_INFO } from '../types/chat'
 import { UserMessage } from './user-message'
@@ -9,7 +10,7 @@ interface MessageListProps {
   onResume: () => void
 }
 
-export function MessageList({ messages, loading, onResume }: MessageListProps) {
+export const MessageList = memo(function MessageList({ messages, loading, onResume }: MessageListProps) {
   return (
     <>
       {messages.map((msg, i) => (
@@ -27,4 +28,4 @@ export function MessageList({ messages, loading, onResume }: MessageListProps) {
       ))}
     </>
   )
-}
+})

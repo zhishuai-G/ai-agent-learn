@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import './App.css'
 import './styles/features.css'
 import './styles/multi-agent.css'
@@ -56,9 +56,13 @@ function App() {
     else streamChatHandler(userMessage, systemPrompt, deepThink)
   }
 
-  const handleResume = () => {
-    if (pendingResume) langGraphResumeHandler(pendingResume)
-  }
+  // 用 ref 绕过 hook 返回函数引用不稳定的问题，确保 handleResume 引用稳定
+  const langGraphResumeHandlerRef = useRef(langGraphResumeHandler)
+  langGraphResumeHandlerRef.current = langGraphResumeHandler
+
+  const handleResume = useCallback(() => {
+    if (pendingResume) langGraphResumeHandlerRef.current(pendingResume)
+  }, [pendingResume])
 
   const clearChat = () => {
     setMessages([])

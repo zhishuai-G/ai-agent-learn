@@ -1,11 +1,13 @@
+import { memo } from 'react'
+
 interface UserMessageProps {
   content: string
 }
 
-export function UserMessage({ content }: UserMessageProps) {
+export const UserMessage = memo(function UserMessage({ content }: UserMessageProps) {
   return (
     <div className="message-bubble">
       {content}
     </div>
   )
-}
+})
