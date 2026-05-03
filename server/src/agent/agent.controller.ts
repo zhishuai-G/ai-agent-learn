@@ -5,7 +5,7 @@ import { AgentService } from './agent.service';
 import { AgentRequestDto } from './dto/agent-request.dto';
 import { SkipTransform } from '../common/interceptors/transform.interceptor';
 
-@ApiTags('Agent - 智能助手')
+@ApiTags('Agent - 智能助手 (Phase 2)')
 @Controller('agent')
 export class AgentController {
   constructor(private readonly agentService: AgentService) {}

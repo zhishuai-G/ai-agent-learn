@@ -6,7 +6,7 @@ import { ChatRequestDto } from './dto/chat-request.dto';
 import { ChatReplyDto } from './dto/chat-reply.dto';
 import { SkipTransform } from '../common/interceptors/transform.interceptor';
 
-@ApiTags('Chat - 聊天')
+@ApiTags('Chat - 聊天 (Phase 1)')
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}

@@ -21,7 +21,7 @@ import {
  * 5. GET /rag/status - 获取知识库状态
  * 6. DELETE /rag/documents - 清空知识库
  */
-@ApiTags('RAG - 检索增强生成')
+@ApiTags('RAG - 检索增强生成 (Phase 4)')
 @Controller('rag')
 export class RagController {
   constructor(

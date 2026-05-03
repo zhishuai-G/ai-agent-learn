@@ -2,12 +2,14 @@ import { useState, useRef, useEffect } from 'react'
 import './App.css'
 import './styles/features.css'
 import './styles/multi-agent.css'
+import './styles/mcp.css'
 import type { ChatMessage, ChatMode, LangGraphSubMode, MultiAgentSubMode } from './types/chat'
 import { useStreamChat } from './hooks/use-stream-chat'
 import { useAgentChat } from './hooks/use-agent-chat'
 import { useLangGraphChat } from './hooks/use-langgraph-chat'
 import { useRag } from './hooks/use-rag'
 import { useMultiAgent } from './hooks/use-multi-agent'
+import { useMcp } from './hooks/use-mcp'
 import { MessageList } from './components/message-list'
 import { AgentFlow } from './components/agent-flow'
 
@@ -32,6 +34,7 @@ function App() {
     useLangGraphChat(messages, setMessages, setLoading, setPendingResume)
   const rag = useRag(messages, setMessages, setLoading, mode === 'rag')
   const multiAgent = useMultiAgent(messages, setMessages, setLoading)
+  const mcp = useMcp(messages, setMessages, setLoading)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -44,6 +47,7 @@ function App() {
     setMessages(prev => [...prev, { role: 'user', content: userMessage }])
 
     if (mode === 'multi-agent') multiAgent.handleChat(userMessage, multiAgentSubMode, threadId)
+    else if (mode === 'mcp') mcp.handleChat(userMessage, threadId)
     else if (mode === 'rag') rag.handleRagChat(userMessage)
     else if (mode === 'langgraph') langGraphChatHandler(userMessage, { lgSubMode, threadId, systemPrompt })
     else if (mode === 'agent') agentChatHandler(userMessage, systemPrompt)
@@ -68,7 +72,9 @@ function App() {
     multiAgent.resetFlow()
   }
 
-  const headerTitle = mode === 'multi-agent'
+  const headerTitle = mode === 'mcp'
+    ? 'Phase 6 (MCP - 工具协议)'
+    : mode === 'multi-agent'
     ? `Phase 5 (Multi-Agent - ${multiAgentSubMode === 'supervisor' ? 'Supervisor' : 'Swarm'})`
     : mode === 'rag'
       ? 'Phase 4 (RAG)'
@@ -101,7 +107,7 @@ function App() {
             rows={3}
             placeholder="设定 AI 的角色和行为..."
           />
-          {(mode === 'langgraph' || mode === 'multi-agent') && (
+          {(mode === 'langgraph' || mode === 'multi-agent' || mode === 'mcp') && (
             <div className="settings-thread">
               <label>Thread ID（对话线程）</label>
               <div className="thread-id-row">
@@ -183,13 +189,33 @@ function App() {
         <AgentFlow flow={multiAgent.agentFlow} subMode={multiAgentSubMode} />
       )}
 
+      {/* Phase 6: MCP 工具发现面板 */}
+      {mode === 'mcp' && mcp.discoveredTools.length > 0 && (
+        <div className="mcp-tools-panel">
+          <div className="mcp-tools-header">
+            <span className="mcp-tools-title">🔌 MCP 动态工具</span>
+            <span className="mcp-tools-count">{mcp.discoveredTools.length} 个工具可用</span>
+          </div>
+          <div className="mcp-tools-list">
+            {mcp.discoveredTools.map(tool => (
+              <div key={tool.name} className="mcp-tool-item">
+                <span className="mcp-tool-name">{tool.name}</span>
+                <span className="mcp-tool-desc">{tool.description}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Messages */}
       <main className="chat-messages">
         {messages.length === 0 && (
           <div className="empty-state">
             <p>👋 发送一条消息开始聊天</p>
             <p className="hint">
-              {mode === 'multi-agent'
+              {mode === 'mcp'
+                ? 'MCP 模式：工具通过协议动态发现，不再硬编码。试试问天气、时间、百科搜索'
+                : mode === 'multi-agent'
                 ? multiAgentSubMode === 'supervisor'
                   ? 'Supervisor 模式：描述需求，PM→Architect→Developer→Reviewer 自动协作完成开发任务'
                   : 'Swarm 模式：发送消息，Sales 和 Tech Support 根据意图自动交接处理'
@@ -219,7 +245,9 @@ function App() {
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
-              mode === 'multi-agent'
+              mode === 'mcp'
+                ? '试试问：北京天气怎么样？/ 纽约现在几点？（工具通过 MCP 动态发现）'
+                : mode === 'multi-agent'
                 ? multiAgentSubMode === 'supervisor'
                   ? '描述你的开发需求，如：开发一个用户登录功能'
                   : '试试问：这个产品多少钱？/ 我的代码报错了怎么办？'
@@ -252,6 +280,9 @@ function App() {
               </button>
               <button className={`btn-tool ${mode === 'multi-agent' ? 'active' : ''}`} onClick={() => setMode('multi-agent')} title="Phase 5: Multi-Agent 多智能体协作">
                 🤝 Multi-Agent
+              </button>
+              <button className={`btn-tool ${mode === 'mcp' ? 'active' : ''}`} onClick={() => setMode('mcp')} title="Phase 6: MCP 工具协议">
+                🔌 MCP
               </button>
 
               {mode === 'multi-agent' && (

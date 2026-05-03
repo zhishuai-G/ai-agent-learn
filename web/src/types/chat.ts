@@ -50,7 +50,7 @@ export interface ChatMessage {
   agentName?: string
 }
 
-export type ChatMode = 'chat' | 'agent' | 'langgraph' | 'rag' | 'multi-agent'
+export type ChatMode = 'chat' | 'agent' | 'langgraph' | 'rag' | 'multi-agent' | 'mcp'
 export type LangGraphSubMode = 'chat' | 'react' | 'hitl'
 export type MultiAgentSubMode = 'supervisor' | 'swarm'
 export type SetMessages = Dispatch<SetStateAction<ChatMessage[]>>
