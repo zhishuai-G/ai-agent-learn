@@ -339,30 +339,6 @@ function App() {
         />
       )}
 
-      {/* Messages */}}
-      {mode === 'custom' && (
-        <CustomAgentPanel
-          agents={customAgent.agents}
-          selectedAgentId={selectedCustomAgentId}
-          onSelect={setSelectedCustomAgentId}
-          onCreate={customAgent.createAgent}
-          onDelete={customAgent.deleteAgent}
-          onFetchAgents={customAgent.fetchAgents}
-        />
-      )}
-
-      {/* 毕业项目: 自定义 Agent 配置面板 */}
-      {mode === 'custom' && (
-        <CustomAgentPanel
-          agents={customAgent.agents}
-          selectedAgentId={selectedCustomAgentId}
-          onSelect={setSelectedCustomAgentId}
-          onCreate={customAgent.createAgent}
-          onDelete={customAgent.deleteAgent}
-          onFetchAgents={customAgent.fetchAgents}
-        />
-      )}
-
       {/* Messages */}
       <main className="chat-messages">
         {messages.length === 0 && (
