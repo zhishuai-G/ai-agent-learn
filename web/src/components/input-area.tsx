@@ -34,7 +34,9 @@ export function InputArea({
     }
   }
 
-  const placeholder = mode === 'mcp'
+  const placeholder = mode === 'custom'
+    ? '选择一个自定义 Agent，然后发送消息'
+    : mode === 'mcp'
     ? '试试问：北京天气怎么样？/ 纽约现在几点？（工具通过 MCP 动态发现）'
     : mode === 'multi-agent'
     ? multiAgentSubMode === 'supervisor'
@@ -80,6 +82,9 @@ export function InputArea({
             </button>
             <button className={`btn-tool ${mode === 'mcp' ? 'active' : ''}`} onClick={() => setMode('mcp')} title="Phase 6: MCP 工具协议">
               🔌 MCP
+            </button>
+            <button className={`btn-tool ${mode === 'custom' ? 'active' : ''}`} onClick={() => setMode('custom')} title="自定义 Agent">
+              🤖 Custom
             </button>
 
             {mode === 'multi-agent' && (

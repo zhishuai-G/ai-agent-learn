@@ -28,14 +28,15 @@ async function bootstrap() {
   // Swagger 文档配置
   const config = new DocumentBuilder()
     .setTitle('AI Agent Learn API')
-    .setDescription('Phase 1~6: 基础聊天 → LangChain → LangGraph → RAG → Multi-Agent → MCP')
-    .setVersion('6.0')
+    .setDescription('Phase 1~6 + 毕业项目: 基础聊天 → LangChain → LangGraph → RAG → Multi-Agent → MCP → 自定义 Agent')
+    .setVersion('7.0')
     .addTag('Chat - 聊天 (Phase 1)', '聊天相关接口（普通 + 流式）')
     .addTag('Agent - 智能助手 (Phase 2)', '带工具调用的智能助手接口（Tool Use）')
     .addTag('LangGraph - Agent 编排引擎 (Phase 3)', 'LangGraph Agent 编排')
     .addTag('RAG - 检索增强生成 (Phase 4)', 'RAG 检索增强生成')
     .addTag('Multi-Agent - 多 Agent 协作系统 (Phase 5)', '多 Agent 协作系统（Supervisor + Swarm）')
     .addTag('MCP - 工具协议与标准化 (Phase 6)', 'MCP 工具动态发现与标准化协议')
+    .addTag('Custom Agent - 自定义 Agent (毕业项目)', '自定义 Agent 配置与聊天')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);

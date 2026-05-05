@@ -5,6 +5,7 @@ import './styles/multi-agent.css'
 import './styles/mcp.css'
 import './styles/markdown.css'
 import './styles/sidebar.css'
+import './styles/custom-agent.css'
 import type { ChatMessage, ChatMode, LangGraphSubMode, MultiAgentSubMode } from './types/chat'
 import { SUPPORTED_MODELS } from './types/chat'
 import { useSessionStore } from './hooks/use-session-store'
@@ -14,10 +15,12 @@ import { useLangGraphChat } from './hooks/use-langgraph-chat'
 import { useRag } from './hooks/use-rag'
 import { useMultiAgent } from './hooks/use-multi-agent'
 import { useMcp } from './hooks/use-mcp'
+import { useCustomAgent } from './hooks/use-custom-agent'
 import { MessageList } from './components/message-list'
 import { AgentFlow } from './components/agent-flow'
 import { InputArea } from './components/input-area'
 import { Sidebar } from './components/sidebar'
+import { CustomAgentPanel } from './components/custom-agent-panel'
 
 function App() {
   const sessionStore = useSessionStore()
@@ -104,6 +107,8 @@ function App() {
   const rag = useRag(messages, setMessages, setLoading, mode === 'rag')
   const multiAgent = useMultiAgent(messages, setMessages, setLoading)
   const mcp = useMcp(messages, setMessages, setLoading)
+  const customAgent = useCustomAgent(messages, setMessages, setLoading)
+  const [selectedCustomAgentId, setSelectedCustomAgentId] = useState<string | null>(current?.customAgentId || null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -117,6 +122,7 @@ function App() {
 
     if (mode === 'multi-agent') multiAgent.handleChat(userMessage, multiAgentSubMode, threadId, model)
     else if (mode === 'mcp') mcp.handleChat(userMessage, threadId, model)
+    else if (mode === 'custom' && selectedCustomAgentId) customAgent.chat(selectedCustomAgentId, userMessage, threadId)
     else if (mode === 'rag') rag.handleRagChat(userMessage)
     else if (mode === 'langgraph') langGraphChatHandler(userMessage, { lgSubMode, threadId, systemPrompt, model })
     else if (mode === 'agent') agentChatHandler(userMessage, systemPrompt, model)
@@ -141,7 +147,9 @@ function App() {
     sessionStore.createSession(mode, model)
   }
 
-  const headerTitle = mode === 'mcp'
+  const headerTitle = mode === 'custom'
+    ? 'Custom Agent'
+    : mode === 'mcp'
     ? 'Phase 6 (MCP - 工具协议)'
     : mode === 'multi-agent'
     ? `Phase 5 (Multi-Agent - ${multiAgentSubMode === 'supervisor' ? 'Supervisor' : 'Swarm'})`
@@ -153,7 +161,9 @@ function App() {
           ? 'Phase 2 (Tool Use)'
           : 'Phase 1'
 
-  const emptyHint = mode === 'mcp'
+  const emptyHint = mode === 'custom'
+    ? '自定义 Agent：选择或创建一个 Agent，配置专属提示词和工具组合'
+    : mode === 'mcp'
     ? 'MCP 模式：工具通过协议动态发现，不再硬编码。试试问天气、时间、百科搜索'
     : mode === 'multi-agent'
     ? multiAgentSubMode === 'supervisor'
@@ -315,6 +325,42 @@ function App() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Custom Agent 配置面板 */}
+      {mode === 'custom' && (
+        <CustomAgentPanel
+          agents={customAgent.agents}
+          selectedAgentId={selectedCustomAgentId}
+          onSelect={setSelectedCustomAgentId}
+          onCreate={customAgent.createAgent}
+          onDelete={customAgent.deleteAgent}
+          onFetchAgents={customAgent.fetchAgents}
+        />
+      )}
+
+      {/* Messages */}}
+      {mode === 'custom' && (
+        <CustomAgentPanel
+          agents={customAgent.agents}
+          selectedAgentId={selectedCustomAgentId}
+          onSelect={setSelectedCustomAgentId}
+          onCreate={customAgent.createAgent}
+          onDelete={customAgent.deleteAgent}
+          onFetchAgents={customAgent.fetchAgents}
+        />
+      )}
+
+      {/* 毕业项目: 自定义 Agent 配置面板 */}
+      {mode === 'custom' && (
+        <CustomAgentPanel
+          agents={customAgent.agents}
+          selectedAgentId={selectedCustomAgentId}
+          onSelect={setSelectedCustomAgentId}
+          onCreate={customAgent.createAgent}
+          onDelete={customAgent.deleteAgent}
+          onFetchAgents={customAgent.fetchAgents}
+        />
       )}
 
       {/* Messages */}

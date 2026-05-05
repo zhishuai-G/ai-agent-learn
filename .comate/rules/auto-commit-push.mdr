@@ -1,0 +1,26 @@
+---
+description: 代码验证通过后自动提交并推送到远端
+alwaysApply: true
+---
+
+# Auto Commit & Push
+
+代码变更完成并通过验证（如 TypeScript 类型检查、构建等）后，自动执行以下流程，无需再次询问用户：
+
+1. `git add -A`
+2. `git commit -m "<conventional commit message>"`
+3. `git push`
+
+**Commit message 格式**：
+- 使用 Conventional Commits：`feat:` / `fix:` / `refactor:` 等前缀
+- 使用中文描述
+- 多行正文列出关键变更点
+
+**验证标准**：
+- 后端：`npx tsc --noEmit` 无错误
+- 前端：`npx tsc --noEmit` 无错误
+- 两者均通过即可提交
+
+**跳过条件**：
+- 验证失败 → 不提交，先修复
+- 用户明确表示"先不提交" → 不提交

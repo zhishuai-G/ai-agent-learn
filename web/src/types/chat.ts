@@ -50,7 +50,7 @@ export interface ChatMessage {
   agentName?: string
 }
 
-export type ChatMode = 'chat' | 'agent' | 'langgraph' | 'rag' | 'multi-agent' | 'mcp'
+export type ChatMode = 'chat' | 'agent' | 'langgraph' | 'rag' | 'multi-agent' | 'mcp' | 'custom'
 export type LangGraphSubMode = 'chat' | 'react' | 'hitl'
 export type MultiAgentSubMode = 'supervisor' | 'swarm'
 export type SetMessages = Dispatch<SetStateAction<ChatMessage[]>>
@@ -73,9 +73,27 @@ export interface Session {
   model: string
   threadId: string
   systemPrompt: string
+  customAgentId?: string
   createdAt: number
   updatedAt: number
 }
+
+/** 自定义 Agent 配置（与后端 CustomAgentConfig 对应） */
+export interface CustomAgentConfig {
+  id: string
+  name: string
+  systemPrompt: string
+  tools: string[]
+  model?: string
+  createdAt: number
+}
+
+/** 前端可用的工具列表（与后端 AVAILABLE_TOOLS 对应） */
+export const AVAILABLE_TOOLS = [
+  { value: 'get_weather', label: '天气查询', icon: '🌤️' },
+  { value: 'get_current_time', label: '时间查询', icon: '🕐' },
+  { value: 'web_search', label: '百科搜索', icon: '🔍' },
+] as const
 
 // 开发环境通过 Vite proxy 代理到后端 (localhost:3000)
 // 生产环境需要配置 nginx 或 CDN 反向代理
