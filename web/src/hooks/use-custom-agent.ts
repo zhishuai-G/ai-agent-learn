@@ -13,8 +13,8 @@ export function useCustomAgent(
   const fetchAgents = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/custom-agent`)
-      const data = await res.json()
-      setAgents(data)
+      const json = await res.json()
+      setAgents(json.data ?? json)
     } catch {
       // ignore
     }
@@ -26,7 +26,8 @@ export function useCustomAgent(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, systemPrompt, tools, model }),
     })
-    const agent = await res.json()
+    const json = await res.json()
+    const agent = (json.data ?? json) as CustomAgentConfig
     setAgents(prev => [agent, ...prev])
     return agent as CustomAgentConfig
   }, [])

@@ -24,7 +24,7 @@ export class LangChainService {
     const apiKey = this.configService.get<string>('OPENAI_API_KEY');
     const baseURL = this.configService.get<string>('OPENAI_BASE_URL');
     const defaultModelName = this.configService.get<string>('OPENAI_MODEL') || 'minimax-m2.7';
-    const temperature = Number(this.configService.get<string>('OPENAI_TEMPERATURE', '0.7'));
+    const temperature = this.resolveTemperature(defaultModelName);
 
     this.defaultModel = this.createModel(apiKey!, baseURL!, defaultModelName, temperature);
   }
@@ -44,11 +44,18 @@ export class LangChainService {
 
     const apiKey = this.configService.get<string>('OPENAI_API_KEY');
     const baseURL = this.configService.get<string>('OPENAI_BASE_URL');
-    const temperature = Number(this.configService.get<string>('OPENAI_TEMPERATURE', '0.7'));
+    const temperature = this.resolveTemperature(modelName);
 
     const model = this.createModel(apiKey!, baseURL!, modelName, temperature);
     this.modelCache.set(modelName, model);
     return model;
+  }
+
+  /** kimi-k2.6 要求 temperature 必须为 1 */
+  private resolveTemperature(modelName: string): number {
+    if (modelName.includes('kimi')) return 1;
+    const envTemp = this.configService.get<string>('OPENAI_TEMPERATURE');
+    return envTemp ? Number(envTemp) : 0.7;
   }
 
   private createModel(apiKey: string, baseURL: string, modelName: string, temperature: number): ChatOpenAI {
