@@ -55,6 +55,28 @@ export type LangGraphSubMode = 'chat' | 'react' | 'hitl'
 export type MultiAgentSubMode = 'supervisor' | 'swarm'
 export type SetMessages = Dispatch<SetStateAction<ChatMessage[]>>
 
+/** 前端可选择的模型列表 */
+export const SUPPORTED_MODELS = [
+  { value: 'minimax-m2.7', label: 'MiniMax M2.7' },
+  { value: 'kimi-k2.6', label: 'Kimi K2.6' },
+  { value: 'glm-5.1', label: 'GLM 5.1' },
+] as const
+
+/** 会话数据 */
+export interface Session {
+  id: string
+  title: string
+  messages: ChatMessage[]
+  mode: ChatMode
+  lgSubMode: LangGraphSubMode
+  multiAgentSubMode: MultiAgentSubMode
+  model: string
+  threadId: string
+  systemPrompt: string
+  createdAt: number
+  updatedAt: number
+}
+
 // 开发环境通过 Vite proxy 代理到后端 (localhost:3000)
 // 生产环境需要配置 nginx 或 CDN 反向代理
 export const API_BASE = '/api'

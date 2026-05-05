@@ -18,6 +18,11 @@ export class SupervisorRequestDto {
   @IsOptional()
   @IsString()
   threadId?: string;
+
+  @ApiPropertyOptional({ description: '模型名称', enum: ['minimax-m2.7', 'kimi-k2.6', 'glm-5.1'] })
+  @IsOptional()
+  @IsString()
+  model?: string;
 }
 
 /** Swarm 模式请求 DTO — 智能客服 */
@@ -37,4 +42,9 @@ export class SwarmRequestDto {
   @IsOptional()
   @IsString()
   threadId?: string;
+
+  @ApiPropertyOptional({ description: '模型名称', enum: ['minimax-m2.7', 'kimi-k2.6', 'glm-5.1'] })
+  @IsOptional()
+  @IsString()
+  model?: string;
 }

@@ -4,43 +4,64 @@ import { ChatOpenAI } from '@langchain/openai';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 
+/** 前端可选择的三种模型 */
+export const SUPPORTED_MODELS = ['minimax-m2.7', 'kimi-k2.6', 'glm-5.1'] as const;
+export type SupportedModel = typeof SUPPORTED_MODELS[number];
+
 /**
  * LangChain 服务 - 封装 LangChain.js 核心组件
  *
- * Phase 2 学习要点：
- * 1. ChatOpenAI：LangChain 对 OpenAI 兼容模型的封装
- * 2. LCEL（LangChain Expression Language）：用 .pipe() 串联组件
- * 3. Prompt Template：模板化 Prompt 管理
- * 4. Output Parser：解析模型输出
+ * 毕业项目增强：支持运行时切换模型
+ * - getModel(): 返回默认模型（向后兼容）
+ * - getModel(modelName): 返回指定模型（动态切换）
  */
 @Injectable()
 export class LangChainService {
-  private model: ChatOpenAI;
+  private defaultModel: ChatOpenAI;
+  private modelCache = new Map<string, ChatOpenAI>();
 
   constructor(private configService: ConfigService) {
-    this.model = new ChatOpenAI({
-      openAIApiKey: this.configService.get<string>('OPENAI_API_KEY'),
-      configuration: {
-        baseURL: this.configService.get<string>('OPENAI_BASE_URL'),
-      },
-      modelName: this.configService.get<string>('OPENAI_MODEL') || 'GLM-5',
-      temperature: Number(this.configService.get<string>('OPENAI_TEMPERATURE', '0.7')),
+    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+    const baseURL = this.configService.get<string>('OPENAI_BASE_URL');
+    const defaultModelName = this.configService.get<string>('OPENAI_MODEL') || 'minimax-m2.7';
+    const temperature = Number(this.configService.get<string>('OPENAI_TEMPERATURE', '0.7'));
+
+    this.defaultModel = this.createModel(apiKey!, baseURL!, defaultModelName, temperature);
+  }
+
+  /**
+   * 获取 ChatOpenAI 模型实例
+   * - 不传参：返回默认模型（向后兼容）
+   * - 传 modelName：返回指定模型（动态切换）
+   */
+  getModel(modelName?: string): ChatOpenAI {
+    if (!modelName) return this.defaultModel;
+
+    // 缓存已创建的模型实例，避免重复创建
+    if (this.modelCache.has(modelName)) {
+      return this.modelCache.get(modelName)!;
+    }
+
+    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+    const baseURL = this.configService.get<string>('OPENAI_BASE_URL');
+    const temperature = Number(this.configService.get<string>('OPENAI_TEMPERATURE', '0.7'));
+
+    const model = this.createModel(apiKey!, baseURL!, modelName, temperature);
+    this.modelCache.set(modelName, model);
+    return model;
+  }
+
+  private createModel(apiKey: string, baseURL: string, modelName: string, temperature: number): ChatOpenAI {
+    return new ChatOpenAI({
+      openAIApiKey: apiKey,
+      configuration: { baseURL },
+      modelName,
+      temperature,
     });
   }
 
   /**
-   * 获取底层 ChatOpenAI 模型实例
-   * 用于 bindTools、withStructuredOutput 等场景
-   */
-  getModel(): ChatOpenAI {
-    return this.model;
-  }
-
-  /**
    * LCEL Chain 示例：Prompt → Model → StringOutputParser
-   *
-   * 这就是 LangChain 最核心的范式：
-   * 用 .pipe() 把组件串成一条可执行的链
    */
   buildChain(systemTemplate: string) {
     const prompt = ChatPromptTemplate.fromMessages([
@@ -48,6 +69,6 @@ export class LangChainService {
       ['human', '{input}'],
     ]);
 
-    return prompt.pipe(this.model).pipe(new StringOutputParser());
+    return prompt.pipe(this.defaultModel).pipe(new StringOutputParser());
   }
 }

@@ -38,12 +38,12 @@ export class LangGraphController {
     @Body() body: LangGraphRequestDto,
     @Res() res: Response,
   ) {
-    const { message, threadId, history, systemPrompt } = body;
+    const { message, threadId, history, systemPrompt, model } = body;
     this.setupSSE(res);
 
     try {
       const stream = this.langGraphService.chatWithStateGraph(
-        message, threadId, history, systemPrompt,
+        message, threadId, history, systemPrompt, model,
       );
       for await (const event of stream) {
         res.write(`data: ${JSON.stringify(event)}\n\n`);
@@ -74,12 +74,12 @@ export class LangGraphController {
     @Body() body: LangGraphRequestDto,
     @Res() res: Response,
   ) {
-    const { message, threadId, systemPrompt } = body;
+    const { message, threadId, systemPrompt, model } = body;
     this.setupSSE(res);
 
     try {
       const stream = this.langGraphService.chatWithReactAgent(
-        message, threadId, systemPrompt,
+        message, threadId, systemPrompt, model,
       );
       for await (const event of stream) {
         res.write(`data: ${JSON.stringify(event)}\n\n`);
@@ -111,12 +111,12 @@ export class LangGraphController {
     @Body() body: LangGraphRequestDto,
     @Res() res: Response,
   ) {
-    const { message, threadId, systemPrompt } = body;
+    const { message, threadId, systemPrompt, model } = body;
     this.setupSSE(res);
 
     try {
       const stream = this.langGraphService.chatWithHumanInTheLoop(
-        message, threadId || `hitl-${Date.now()}`, systemPrompt,
+        message, threadId || `hitl-${Date.now()}`, systemPrompt, model,
       );
       for await (const event of stream) {
         res.write(`data: ${JSON.stringify(event)}\n\n`);

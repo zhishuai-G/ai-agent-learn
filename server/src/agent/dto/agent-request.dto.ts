@@ -32,11 +32,13 @@ export class AgentRequestDto {
   @Type(() => AgentMessageDto)
   history?: AgentMessageDto[];
 
-  @ApiPropertyOptional({
-    description: '系统提示词（角色设定）',
-    example: '你是一位智能助手，可以使用工具来帮助用户获取信息。',
-  })
+  @ApiPropertyOptional({ description: '系统提示词（角色设定）', example: '你是一位智能助手' })
   @IsOptional()
   @IsString()
   systemPrompt?: string;
+
+  @ApiPropertyOptional({ description: '模型名称', enum: ['minimax-m2.7', 'kimi-k2.6', 'glm-5.1'] })
+  @IsOptional()
+  @IsString()
+  model?: string;
 }

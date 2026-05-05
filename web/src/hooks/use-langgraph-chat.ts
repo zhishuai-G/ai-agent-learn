@@ -6,6 +6,7 @@ interface LangGraphChatOptions {
   lgSubMode: LangGraphSubMode
   threadId: string
   systemPrompt: string
+  model?: string
 }
 
 // 处理 LangGraph SSE 事件（chat 和 resume 共用）
@@ -105,6 +106,7 @@ export function useLangGraphChat(
           threadId: options.threadId,
           history: messages.map(m => ({ role: m.role, content: m.content })),
           systemPrompt: options.systemPrompt,
+          ...(options.model ? { model: options.model } : {}),
         }),
       })
 

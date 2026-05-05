@@ -158,7 +158,7 @@ export function useMultiAgent(
   const [agentFlow, setAgentFlow] = useState<AgentFlowState | null>(null)
   const currentAgentRef = useRef<string | null>(null)
 
-  const handleChat = async (userMessage: string, subMode: MultiAgentSubMode, threadId?: string) => {
+  const handleChat = async (userMessage: string, subMode: MultiAgentSubMode, threadId?: string, model?: string) => {
     setLoading(true)
     currentAgentRef.current = null
 
@@ -176,8 +176,8 @@ export function useMultiAgent(
       : '/multi-agent/swarm'
 
     const body = subMode === 'supervisor'
-      ? { requirement: userMessage, threadId }
-      : { message: userMessage, threadId }
+      ? { requirement: userMessage, threadId, ...(model ? { model } : {}) }
+      : { message: userMessage, threadId, ...(model ? { model } : {}) }
 
     try {
       const res = await fetch(`${API_BASE}${endpoint}`, {

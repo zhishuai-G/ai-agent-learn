@@ -171,6 +171,7 @@ export class McpService implements OnModuleInit, OnModuleDestroy {
   async *chat(
     message: string,
     threadId?: string,
+    model?: string,
   ): AsyncGenerator<McpAgentEvent> {
     if (!this.mcpClient) {
       yield { type: 'error', error: 'MCP Client 未初始化' };
@@ -222,9 +223,9 @@ export class McpService implements OnModuleInit, OnModuleDestroy {
        * 注意：createReactAgent 的用法完全不变！
        * MCP 只改变了"工具从哪来"，不改变"Agent 怎么用工具"
        */
-      const model = this.langchainService.getModel();
+      const llm = this.langchainService.getModel(model);
       const agent = createReactAgent({
-        llm: model,
+        llm,
         tools: mcpTools,  // MCP 动态获取的工具，不再 import 硬编码的工具！
         ...(this.checkpointer ? { checkpointer: this.checkpointer } : {}),
       });

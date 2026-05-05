@@ -7,30 +7,18 @@ import OpenAI from 'openai';
  * 来源：OneAPI 平台可用模型列表
  */
 export enum AvailableModel {
-  // Claude 系列
+  // 推荐模型（毕业项目默认支持）
+  MINIMAX_M2_7 = 'minimax-m2.7',
+  KIMI_K2_6 = 'kimi-k2.6',
+  GLM_5_1 = 'glm-5.1',
+  // 其他可用模型
   CLAUDE_OPUS_4_6 = 'Claude Opus 4.6',
-  CLAUDE_OPUS_4_5 = 'Claude Opus 4.5',
   CLAUDE_SONNET_4_6 = 'Claude Sonnet 4.6',
-  CLAUDE_SONNET_4_5 = 'Claude Sonnet 4.5',
-  CLAUDE_HAIKU_4_5 = 'Claude Haiku 4.5',
-  // GPT 系列
   GPT_5_4 = 'GPT-5.4',
-  GPT_5_3_CODEX = 'GPT-5.3-Codex',
-  GPT_5_2_CODEX = 'GPT-5.2-Codex',
-  // Gemini 系列
-  GEMINI_3_1_PRO_PREVIEW = 'Gemini 3.1 Pro Preview',
   GEMINI_3_PRO = 'Gemini 3 Pro',
-  GEMINI_3_0_FLASH = 'Gemini 3.0 Flash',
-  // GLM 系列
   GLM_5 = 'GLM-5',
-  GLM_5_TURBO = 'GLM-5-Turbo',
-  GLM_4_7 = 'GLM-4.7',
-  // MiniMax
-  MINIMAX_M2_7 = 'MiniMax-M2.7',
   MINIMAX_M2_5 = 'MiniMax-M2.5',
-  // Kimi
   KIMI_K2_5 = 'Kimi K2.5',
-  KIMI_K2_5_THINKING = 'Kimi K2.5 (Thinking)',
 }
 
 /**

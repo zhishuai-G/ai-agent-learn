@@ -6,7 +6,7 @@ export function useAgentChat(
   setMessages: SetMessages,
   setLoading: (v: boolean) => void,
 ) {
-  return async (userMessage: string, systemPrompt: string) => {
+  return async (userMessage: string, systemPrompt: string, model?: string) => {
     setLoading(true)
     setMessages(prev => [...prev, { role: 'assistant', content: '', toolCalls: [], isThinking: true }])
     const thinkStartTime = Date.now()
@@ -19,6 +19,7 @@ export function useAgentChat(
           message: userMessage,
           history: messages.map(m => ({ role: m.role, content: m.content })),
           systemPrompt,
+          ...(model ? { model } : {}),
         }),
       })
 

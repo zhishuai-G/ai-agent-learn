@@ -33,7 +33,7 @@ export class AgentController {
     @Body() body: AgentRequestDto,
     @Res() res: Response,
   ) {
-    const { message, history, systemPrompt } = body;
+    const { message, history, systemPrompt, model } = body;
 
     // SSE 响应头
     res.setHeader('Content-Type', 'text/event-stream');
@@ -42,7 +42,7 @@ export class AgentController {
     res.flushHeaders();
 
     try {
-      const stream = this.agentService.chat(message, history, systemPrompt);
+      const stream = this.agentService.chat(message, history, systemPrompt, model);
       for await (const event of stream) {
         res.write(`data: ${JSON.stringify(event)}\n\n`);
       }

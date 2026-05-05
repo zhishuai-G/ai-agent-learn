@@ -54,12 +54,13 @@ export class AgentService {
     message: string,
     history: Array<{ role: string; content: string }> = [],
     systemPrompt?: string,
+    model?: string,
   ): AsyncGenerator<AgentEvent> {
-    const model = this.langchainService.getModel();
+    const llm = this.langchainService.getModel(model);
 
     // 关键！bindTools 让模型知道有哪些工具可用
     // 模型会在 response 里通过 tool_calls 字段告诉我们该调哪个工具
-    const modelWithTools = model.bindTools(this.tools);
+    const modelWithTools = llm.bindTools(this.tools);
 
     // 构建 LangChain 消息列表
     const messages: BaseMessage[] = [];

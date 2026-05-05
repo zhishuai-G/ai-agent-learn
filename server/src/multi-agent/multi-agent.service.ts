@@ -108,9 +108,10 @@ export class MultiAgentService implements OnModuleInit, OnModuleDestroy {
   async *runDevTeam(
     requirement: string,
     threadId?: string,
+    model?: string,
   ): AsyncGenerator<MultiAgentEvent> {
     // 获取 ChatOpenAI 模型实例（复用 Phase 2 的 LangChainService）
-    const model = this.langchainService.getModel();
+    const llm = this.langchainService.getModel(model);
 
     // ---- 1. 创建四个专业 Agent ----
     // 每个 Agent 都是一个 createReactAgent（Phase 3 学过的 ReAct Agent）
@@ -118,7 +119,7 @@ export class MultiAgentService implements OnModuleInit, OnModuleDestroy {
 
     // PM Agent：只配备需求分析工具
     const pmAgent = createReactAgent({
-      llm: model,                         // 复用同一个 LLM 模型
+      llm,                                    // 复用同一个 LLM 模型
       tools: [analyzeRequirementTool],     // PM 专属工具：分析需求
       prompt: PM_PROMPT,                  // PM 角色提示词
       name: 'pm',                         // Agent 名称，Supervisor 靠 name 路由
@@ -126,7 +127,7 @@ export class MultiAgentService implements OnModuleInit, OnModuleDestroy {
 
     // Architect Agent：只配备架构设计工具
     const architectAgent = createReactAgent({
-      llm: model,
+      llm,
       tools: [designArchitectureTool],    // Architect 专属工具：设计方案
       prompt: ARCHITECT_PROMPT,
       name: 'architect',
@@ -134,7 +135,7 @@ export class MultiAgentService implements OnModuleInit, OnModuleDestroy {
 
     // Developer Agent：只配备编码工具
     const developerAgent = createReactAgent({
-      llm: model,
+      llm,
       tools: [writeCodeTool],             // Developer 专属工具：编写代码
       prompt: DEVELOPER_PROMPT,
       name: 'developer',
@@ -142,7 +143,7 @@ export class MultiAgentService implements OnModuleInit, OnModuleDestroy {
 
     // Reviewer Agent：只配备代码审查工具
     const reviewerAgent = createReactAgent({
-      llm: model,
+      llm,
       tools: [reviewCodeTool],            // Reviewer 专属工具：审查代码
       prompt: REVIEWER_PROMPT,
       name: 'reviewer',
@@ -154,7 +155,7 @@ export class MultiAgentService implements OnModuleInit, OnModuleDestroy {
     // 注意：createReactAgent 和 createSupervisor 之间有轻微的泛型类型不兼容，
     // 这是 @langchain 包之间的已知问题，使用 as any 绕过
     const supervisorGraph = createSupervisor({
-      llm: model,  // Supervisor 自己也用 LLM 来决定调度（不是硬编码路由！）
+      llm,  // Supervisor 自己也用 LLM 来决定调度（不是硬编码路由！）
       agents: [pmAgent, architectAgent, developerAgent, reviewerAgent] as any,
       prompt: SUPERVISOR_PROMPT,  // 定义工作流程的提示词
     });
@@ -205,15 +206,16 @@ export class MultiAgentService implements OnModuleInit, OnModuleDestroy {
   async *runSwarm(
     message: string,
     threadId?: string,
+    model?: string,
   ): AsyncGenerator<MultiAgentEvent> {
-    const model = this.langchainService.getModel();
+    const llm = this.langchainService.getModel(model);
 
     // ---- 1. 创建客服 Agent（复用 Phase 2 已有工具）----
     // 和 Supervisor 不同，Swarm 的 Agent 通过提示词引导自主交接
 
     // Sales Agent：销售顾问，只能用搜索工具
     const salesAgent = createReactAgent({
-      llm: model,
+      llm,
       tools: [searchTool],               // 只需要搜索产品信息
       prompt: SALES_PROMPT,              // 提示词中包含"遇到技术问题交给 tech_support"
       name: 'sales',
@@ -221,7 +223,7 @@ export class MultiAgentService implements OnModuleInit, OnModuleDestroy {
 
     // Tech Support Agent：技术支持，配备更多工具
     const techAgent = createReactAgent({
-      llm: model,
+      llm,
       tools: [searchTool, timeTool, weatherTool], // 技术问题可能需要查时间、天气等
       prompt: TECH_SUPPORT_PROMPT,       // 提示词中包含"遇到价格问题交给 sales"
       name: 'tech_support',

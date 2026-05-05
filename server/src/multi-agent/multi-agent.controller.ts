@@ -38,11 +38,11 @@ export class MultiAgentController {
     @Body() body: SupervisorRequestDto,
     @Res() res: Response,
   ) {
-    const { requirement, threadId } = body;
+    const { requirement, threadId, model } = body;
     this.setupSSE(res);
 
     try {
-      const stream = this.multiAgentService.runDevTeam(requirement, threadId);
+      const stream = this.multiAgentService.runDevTeam(requirement, threadId, model);
       for await (const event of stream) {
         res.write(`data: ${JSON.stringify(event)}\n\n`);
       }
@@ -73,11 +73,11 @@ export class MultiAgentController {
     @Body() body: SwarmRequestDto,
     @Res() res: Response,
   ) {
-    const { message, threadId } = body;
+    const { message, threadId, model } = body;
     this.setupSSE(res);
 
     try {
-      const stream = this.multiAgentService.runSwarm(message, threadId);
+      const stream = this.multiAgentService.runSwarm(message, threadId, model);
       for await (const event of stream) {
         res.write(`data: ${JSON.stringify(event)}\n\n`);
       }

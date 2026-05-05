@@ -50,7 +50,7 @@ export class McpController {
     @Body() body: McpChatRequestDto,
     @Res() res: Response,
   ) {
-    const { message, threadId } = body;
+    const { message, threadId, model } = body;
 
     // 设置 SSE 响应头
     res.setHeader('Content-Type', 'text/event-stream');
@@ -59,7 +59,7 @@ export class McpController {
     res.flushHeaders();
 
     try {
-      const stream = this.mcpService.chat(message, threadId);
+      const stream = this.mcpService.chat(message, threadId, model);
       for await (const event of stream) {
         res.write(`data: ${JSON.stringify(event)}\n\n`);
       }

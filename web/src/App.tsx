@@ -4,7 +4,10 @@ import './styles/features.css'
 import './styles/multi-agent.css'
 import './styles/mcp.css'
 import './styles/markdown.css'
+import './styles/sidebar.css'
 import type { ChatMessage, ChatMode, LangGraphSubMode, MultiAgentSubMode } from './types/chat'
+import { SUPPORTED_MODELS } from './types/chat'
+import { useSessionStore } from './hooks/use-session-store'
 import { useStreamChat } from './hooks/use-stream-chat'
 import { useAgentChat } from './hooks/use-agent-chat'
 import { useLangGraphChat } from './hooks/use-langgraph-chat'
@@ -14,20 +17,84 @@ import { useMcp } from './hooks/use-mcp'
 import { MessageList } from './components/message-list'
 import { AgentFlow } from './components/agent-flow'
 import { InputArea } from './components/input-area'
+import { Sidebar } from './components/sidebar'
 
 function App() {
-  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const sessionStore = useSessionStore()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // 从当前会话恢复状态，或使用默认值
+  const current = sessionStore.activeSession
+  const [messages, setMessages] = useState<ChatMessage[]>(current?.messages || [])
   const [input, setInput] = useState('')
-  const [systemPrompt, setSystemPrompt] = useState('你是一位友好的 AI 助手，擅长用简洁的语言回答问题。')
+  const [systemPrompt, setSystemPrompt] = useState(current?.systemPrompt || '你是一位友好的 AI 助手，擅长用简洁的语言回答问题。')
   const [loading, setLoading] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [deepThink, setDeepThink] = useState(false)
-  const [mode, setMode] = useState<ChatMode>('langgraph')
-  const [lgSubMode, setLgSubMode] = useState<LangGraphSubMode>('react')
-  const [multiAgentSubMode, setMultiAgentSubMode] = useState<MultiAgentSubMode>('supervisor')
-  const [threadId, setThreadId] = useState<string>(() => `thread-${Date.now()}`)
+  const [mode, setMode] = useState<ChatMode>(current?.mode || 'langgraph')
+  const [lgSubMode, setLgSubMode] = useState<LangGraphSubMode>(current?.lgSubMode || 'react')
+  const [multiAgentSubMode, setMultiAgentSubMode] = useState<MultiAgentSubMode>(current?.multiAgentSubMode || 'supervisor')
+  const [threadId, setThreadId] = useState<string>(current?.threadId || `thread-${Date.now()}`)
   const [pendingResume, setPendingResume] = useState<string | null>(null)
+  const [model, setModel] = useState<string>(current?.model || 'minimax-m2.7')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // 会话切换时恢复状态
+  const prevSessionIdRef = useRef<string | null>(sessionStore.activeSessionId)
+  useEffect(() => {
+    const curId = sessionStore.activeSessionId
+    if (curId !== prevSessionIdRef.current) {
+      prevSessionIdRef.current = curId
+      const s = sessionStore.activeSession
+      if (s) {
+        setMessages(s.messages)
+        setSystemPrompt(s.systemPrompt)
+        setMode(s.mode)
+        setLgSubMode(s.lgSubMode)
+        setMultiAgentSubMode(s.multiAgentSubMode)
+        setThreadId(s.threadId)
+        setModel(s.model)
+      } else {
+        setMessages([])
+        setMode('langgraph')
+        setLgSubMode('react')
+        setMultiAgentSubMode('supervisor')
+        setModel('minimax-m2.7')
+        setThreadId(`thread-${Date.now()}`)
+        setSystemPrompt('你是一位友好的 AI 助手，擅长用简洁的语言回答问题。')
+      }
+      setPendingResume(null)
+    }
+  }, [sessionStore.activeSessionId, sessionStore.activeSession])
+
+  // 自动保存会话状态（messages 变化时）
+  useEffect(() => {
+    if (sessionStore.activeSessionId) {
+      sessionStore.updateSession(sessionStore.activeSessionId, { messages })
+      // 自动标题
+      if (messages.length > 0) {
+        sessionStore.autoTitle(sessionStore.activeSessionId, messages)
+      }
+    }
+  }, [messages])
+
+  // 保存其他状态变化
+  const saveSessionMeta = useCallback(() => {
+    if (sessionStore.activeSessionId) {
+      sessionStore.updateSession(sessionStore.activeSessionId, {
+        mode, lgSubMode, multiAgentSubMode, model, threadId, systemPrompt,
+      })
+    }
+  }, [sessionStore.activeSessionId, mode, lgSubMode, multiAgentSubMode, model, threadId, systemPrompt])
+
+  useEffect(() => { saveSessionMeta() }, [mode, lgSubMode, multiAgentSubMode, model, threadId, systemPrompt])
+
+  // 确保至少有一个会话
+  useEffect(() => {
+    if (!sessionStore.activeSessionId) {
+      sessionStore.createSession(mode, model)
+    }
+  }, [])
 
   // 各阶段 handler hooks
   const streamChatHandler = useStreamChat(messages, setMessages, setLoading)
@@ -48,15 +115,14 @@ function App() {
     setInput('')
     setMessages(prev => [...prev, { role: 'user', content: userMessage }])
 
-    if (mode === 'multi-agent') multiAgent.handleChat(userMessage, multiAgentSubMode, threadId)
-    else if (mode === 'mcp') mcp.handleChat(userMessage, threadId)
+    if (mode === 'multi-agent') multiAgent.handleChat(userMessage, multiAgentSubMode, threadId, model)
+    else if (mode === 'mcp') mcp.handleChat(userMessage, threadId, model)
     else if (mode === 'rag') rag.handleRagChat(userMessage)
-    else if (mode === 'langgraph') langGraphChatHandler(userMessage, { lgSubMode, threadId, systemPrompt })
-    else if (mode === 'agent') agentChatHandler(userMessage, systemPrompt)
+    else if (mode === 'langgraph') langGraphChatHandler(userMessage, { lgSubMode, threadId, systemPrompt, model })
+    else if (mode === 'agent') agentChatHandler(userMessage, systemPrompt, model)
     else streamChatHandler(userMessage, systemPrompt, deepThink)
   }
 
-  // 用 ref 绕过 hook 返回函数引用不稳定的问题，确保 handleResume 引用稳定
   const langGraphResumeHandlerRef = useRef(langGraphResumeHandler)
   langGraphResumeHandlerRef.current = langGraphResumeHandler
 
@@ -69,6 +135,10 @@ function App() {
     setPendingResume(null)
     setThreadId(`thread-${Date.now()}`)
     multiAgent.resetFlow()
+  }
+
+  const handleNewSession = () => {
+    sessionStore.createSession(mode, model)
   }
 
   const headerTitle = mode === 'mcp'
@@ -103,10 +173,25 @@ function App() {
 
   return (
     <div className="chat-app">
+      {/* Sidebar */}
+      <Sidebar
+        sessions={sessionStore.sessions}
+        activeSessionId={sessionStore.activeSessionId}
+        onSelect={sessionStore.switchSession}
+        onCreate={handleNewSession}
+        onDelete={sessionStore.deleteSession}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
+
       {/* Header */}
       <header className="chat-header">
-        <h1>AI Chat - {headerTitle}</h1>
-        <div className="header-actions">
+        <div className="header-left">
+          <button className="sidebar-toggle" onClick={() => setSidebarOpen(true)} title="会话列表">☰</button>
+          <h1>AI Chat - {headerTitle}</h1>
+        </div>
+        <div className="header-right">
+          <span className="model-badge">{SUPPORTED_MODELS.find(m => m.value === model)?.label || model}</span>
           <button className="btn-icon" onClick={() => setShowSettings(!showSettings)} title="Settings">
             {showSettings ? '✕' : '⚙'}
           </button>
@@ -117,6 +202,14 @@ function App() {
       {/* Settings Panel */}
       {showSettings && (
         <div className="settings-panel">
+          <div className="settings-model">
+            <label>模型选择</label>
+            <select value={model} onChange={e => setModel(e.target.value)}>
+              {SUPPORTED_MODELS.map(m => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+          </div>
           <label>System Prompt</label>
           <textarea
             value={systemPrompt}

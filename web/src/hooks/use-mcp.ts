@@ -30,7 +30,7 @@ export function useMcp(
     }
   }
 
-  const handleChat = async (userMessage: string, threadId?: string) => {
+  const handleChat = async (userMessage: string, threadId?: string, model?: string) => {
     setLoading(true)
 
     // 创建助手消息
@@ -45,7 +45,7 @@ export function useMcp(
       const res = await fetch(`${API_BASE}/mcp/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage, threadId }),
+        body: JSON.stringify({ message: userMessage, threadId, ...(model ? { model } : {}) }),
       })
 
       await readSSE(res, parsed => {

@@ -113,8 +113,9 @@ export class LangGraphService implements OnModuleInit, OnModuleDestroy {
     threadId?: string,
     history: Array<{ role: string; content: string }> = [],
     systemPrompt?: string,
+    model?: string,
   ): AsyncGenerator<LangGraphEvent> {
-    const model = this.langchainService.getModel();
+    const llm = this.langchainService.getModel(model);
 
     const AgentState = Annotation.Root({
       messages: Annotation<BaseMessage[]>({
@@ -122,7 +123,7 @@ export class LangGraphService implements OnModuleInit, OnModuleDestroy {
       }),
     });
 
-    const modelWithTools = model.bindTools(this.tools);
+    const modelWithTools = llm.bindTools(this.tools);
 
     const callModel = async (
       state: typeof AgentState.State,
@@ -172,11 +173,12 @@ export class LangGraphService implements OnModuleInit, OnModuleDestroy {
     message: string,
     threadId?: string,
     systemPrompt?: string,
+    model?: string,
   ): AsyncGenerator<LangGraphEvent> {
-    const model = this.langchainService.getModel();
+    const llm = this.langchainService.getModel(model);
 
     const agent = createReactAgent({
-      llm: model,
+      llm,
       tools: this.tools,
       ...(systemPrompt ? { prompt: systemPrompt } : {}),
       checkpointSaver: this.checkpointer,
@@ -192,8 +194,8 @@ export class LangGraphService implements OnModuleInit, OnModuleDestroy {
 
   // ==================== 方式三：Human-in-the-Loop ====================
 
-  private buildHitlGraph(systemPrompt?: string) {
-    const model = this.langchainService.getModel();
+  private buildHitlGraph(systemPrompt?: string, modelName?: string) {
+    const llm = this.langchainService.getModel(modelName);
 
     const AgentState = Annotation.Root({
       messages: Annotation<BaseMessage[]>({
@@ -201,7 +203,7 @@ export class LangGraphService implements OnModuleInit, OnModuleDestroy {
       }),
     });
 
-    const modelWithTools = model.bindTools(this.tools);
+    const modelWithTools = llm.bindTools(this.tools);
 
     const callModel = async (
       state: typeof AgentState.State,
@@ -235,8 +237,9 @@ export class LangGraphService implements OnModuleInit, OnModuleDestroy {
     message: string,
     threadId: string,
     systemPrompt?: string,
+    model?: string,
   ): AsyncGenerator<LangGraphEvent> {
-    const app = this.buildHitlGraph(systemPrompt);
+    const app = this.buildHitlGraph(systemPrompt, model);
 
     const config = {
       configurable: { thread_id: threadId },

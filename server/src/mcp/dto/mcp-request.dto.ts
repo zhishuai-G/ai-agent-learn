@@ -18,4 +18,9 @@ export class McpChatRequestDto {
   @IsOptional()
   @IsString()
   threadId?: string;
+
+  @ApiPropertyOptional({ description: '模型名称', enum: ['minimax-m2.7', 'kimi-k2.6', 'glm-5.1'] })
+  @IsOptional()
+  @IsString()
+  model?: string;
 }
