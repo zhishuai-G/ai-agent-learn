@@ -53,3 +53,92 @@ docker-compose up -d
    LANGCHAIN_API_KEY=ls-your-key
    ```
 4. 重启后端：所有 LangChain/LangGraph 调用自动追踪
+
+## 增量更新部署（单服务重建）
+
+只改了 `server/` 代码时，不需要重建整个栈。
+
+```bash
+# 1. 拉取最新代码
+git pull origin develop
+
+# 2. 仅重建 server 镜像（--no-cache 避免缓存层用旧代码）
+sudo docker-compose build --no-cache server
+
+# 3. 仅重启 server 容器（postgres/redis/web 不动，连接不中断）
+sudo docker-compose up -d server
+
+# 4. 验证
+sudo docker ps | grep ai-server
+sudo docker logs -f ai-server
+```
+
+只改了 `web/` 前端时把上面的 `server` 换成 `web`。
+
+## 常用运维命令
+
+```bash
+# 查看所有容器状态
+sudo docker-compose ps
+
+# 查看某服务日志
+sudo docker logs -f ai-server        # 实时
+sudo docker logs --tail=200 ai-server # 最近 200 行
+
+# 进入容器调试
+sudo docker exec -it ai-server sh
+
+# 停止所有服务（保留数据 volume）
+sudo docker-compose down
+
+# 停止并清理所有数据（危险：会清空 Redis / PostgreSQL）
+sudo docker-compose down -v
+```
+
+## 故障排查
+
+### 1. `docker-compose up` 报 `KeyError: 'ContainerConfig'`
+
+症状：
+```
+ERROR: for ai-server  'ContainerConfig'
+KeyError: 'ContainerConfig'
+```
+
+原因：服务器上的 `docker-compose v1.29.2`（Python 版）与新版 Docker 镜像元数据格式不兼容，recreate 旧容器时读取 `image_config['ContainerConfig']` 失败。
+
+临时绕过：
+```bash
+# 手动删除旧容器（注意 compose 会把旧容器重命名为 <hash>_ai-server）
+sudo docker ps -a | grep server
+sudo docker rm -f ai-server
+sudo docker rm -f <hash>_ai-server   # 如果有残留
+
+# 再启动
+sudo docker-compose up -d server
+```
+
+根治（推荐）：升级到 compose v2 插件版本。
+```bash
+sudo apt-get update
+sudo apt-get install docker-compose-plugin
+# 之后命令从 docker-compose 改为 docker compose（空格），yml 不用改
+```
+
+### 2. 代码改了但容器行为没变
+
+确认构建时没用缓存：
+```bash
+sudo docker-compose build --no-cache server
+```
+
+确认容器用的是新镜像（看 CREATED 时间）：
+```bash
+sudo docker ps | grep ai-server
+```
+
+### 3. DeepSeek 报 `400 The reasoning_content in the thinking mode must be passed back to the API`
+
+已在 `LangChainService.createModel` 里通过 `configuration.fetch` 拦截出站请求注回 `reasoning_content` 修复。如果再次出现，检查：
+- `server/src/langchain/langchain.service.ts` 的 `customFetch` 逻辑是否仍存在
+- `reasoningCache` 是否有命中日志（可在 `customFetch` 内加 `console.log` 定位）
