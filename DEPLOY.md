@@ -75,6 +75,21 @@ sudo docker logs -f ai-server
 
 只改了 `web/` 前端时把上面的 `server` 换成 `web`。
 
+## build / up 命令作用范围速查
+
+| 命令 | 作用范围 |
+|---|---|
+| `docker-compose build --no-cache` | 重建**所有**带 `build:` 字段的服务（server + web） |
+| `docker-compose build --no-cache server` | 只重建 server 镜像 |
+| `docker-compose up -d` | 启动/更新**所有**服务（用已有镜像） |
+| `docker-compose up -d server` | 只启动/更新 server 容器 |
+| `docker-compose up -d --build` | 先 build 再 up，两步合一 |
+
+说明：
+- `postgres` / `redis` 用的是 `image:`（官方镜像），`build` 不会触碰，只会在 `up` 时拉取
+- `build` 只生成镜像，**不启动容器**；必须再 `up -d` 才会用新镜像替换运行中的容器
+- 增量部署单服务时，`build <service>` + `up -d <service>` 组合最安全，不影响其它服务
+
 ## 常用运维命令
 
 ```bash
