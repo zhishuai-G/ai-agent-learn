@@ -151,7 +151,7 @@ function handleMultiAgentEvent(
 }
 
 export function useMultiAgent(
-  messages: ChatMessage[],
+  _messages: ChatMessage[],
   setMessages: SetMessages,
   setLoading: (v: boolean) => void,
 ) {

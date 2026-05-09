@@ -4,7 +4,7 @@ import { API_BASE, updateLastAssistant } from '../types/chat'
 import { readSSE } from '../utils/sse'
 
 export function useCustomAgent(
-  messages: ChatMessage[],
+  _messages: ChatMessage[],
   setMessages: SetMessages,
   setLoading: (v: boolean) => void,
 ) {

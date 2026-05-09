@@ -3,7 +3,7 @@ import type { ChatMessage, SetMessages, RagSource } from '../types/chat'
 import { API_BASE, updateLastAssistant } from '../types/chat'
 
 export function useRag(
-  messages: ChatMessage[],
+  _messages: ChatMessage[],
   setMessages: SetMessages,
   setLoading: (v: boolean) => void,
   isActive: boolean,

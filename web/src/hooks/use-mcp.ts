@@ -10,7 +10,7 @@ export interface McpToolInfo {
 }
 
 export function useMcp(
-  messages: ChatMessage[],
+  _messages: ChatMessage[],
   setMessages: SetMessages,
   setLoading: (v: boolean) => void,
 ) {
