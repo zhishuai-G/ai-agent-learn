@@ -62,7 +62,7 @@ export class ChatService {
     deepThink?: boolean,
   ): AsyncGenerator<string> {
     const messages = this.buildMessages(message, history, systemPrompt);
-    const model = deepThink ? AvailableModel.MINIMAX_M2_7: undefined;
+    const model = deepThink ? AvailableModel.DEEPSEEK_V4_PRO: undefined;
     yield* this.llmService.chatStream(messages, model);
   }
 }

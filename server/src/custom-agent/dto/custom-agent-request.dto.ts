@@ -29,7 +29,7 @@ export class CreateCustomAgentDto {
   @ArrayMinSize(1, { message: '至少选择一个工具' })
   tools: AvailableTool[];
 
-  @ApiPropertyOptional({ description: '模型名称', enum: ['minimax-m2.7', 'kimi-k2.6', 'glm-5.1'] })
+  @ApiPropertyOptional({ description: '模型名称', enum: ['deepseek-v4-flash', 'deepseek-v4-pro', 'kimi-k2.6'] })
   @IsOptional()
   @IsString()
   model?: string;

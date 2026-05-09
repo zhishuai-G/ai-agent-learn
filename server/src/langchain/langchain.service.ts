@@ -5,7 +5,7 @@ import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 
 /** 前端可选择的三种模型 */
-export const SUPPORTED_MODELS = ['minimax-m2.7', 'kimi-k2.6', 'glm-5.1'] as const;
+export const SUPPORTED_MODELS = ['deepseek-v4-flash', 'deepseek-v4-pro', 'kimi-k2.6'] as const;
 export type SupportedModel = typeof SUPPORTED_MODELS[number];
 
 /**
@@ -23,7 +23,7 @@ export class LangChainService {
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('OPENAI_API_KEY');
     const baseURL = this.configService.get<string>('OPENAI_BASE_URL');
-    const defaultModelName = this.configService.get<string>('OPENAI_MODEL') || 'minimax-m2.7';
+    const defaultModelName = this.configService.get<string>('OPENAI_MODEL') || 'deepseek-v4-flash';
     const temperature = this.resolveTemperature(defaultModelName);
 
     this.defaultModel = this.createModel(apiKey!, baseURL!, defaultModelName, temperature);

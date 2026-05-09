@@ -16,7 +16,7 @@ export function CustomAgentPanel({ agents, selectedAgentId, onSelect, onCreate, 
   const [name, setName] = useState('')
   const [systemPrompt, setSystemPrompt] = useState('')
   const [selectedTools, setSelectedTools] = useState<string[]>([])
-  const [model, setModel] = useState('minimax-m2.7')
+  const [model, setModel] = useState('deepseek-v4-flash')
 
   useEffect(() => { onFetchAgents() }, [])
 

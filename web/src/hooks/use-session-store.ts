@@ -32,7 +32,7 @@ export function useSessionStore() {
 
   const createSession = useCallback((
     mode: ChatMode = 'langgraph',
-    model: string = 'minimax-m2.7',
+    model: string = 'deepseek-v4-flash',
   ): Session => {
     const id = `session-${Date.now()}`
     const session: Session = {

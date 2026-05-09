@@ -8,16 +8,16 @@ import OpenAI from 'openai';
  */
 export enum AvailableModel {
   // 推荐模型（毕业项目默认支持）
-  MINIMAX_M2_7 = 'minimax-m2.7',
+  DEEPSEEK_V4_FLASH = 'deepseek-v4-flash',
+  DEEPSEEK_V4_PRO = 'deepseek-v4-pro',
   KIMI_K2_6 = 'kimi-k2.6',
-  GLM_5_1 = 'glm-5.1',
   // 其他可用模型
   CLAUDE_OPUS_4_6 = 'Claude Opus 4.6',
   CLAUDE_SONNET_4_6 = 'Claude Sonnet 4.6',
   GPT_5_4 = 'GPT-5.4',
   GEMINI_3_PRO = 'Gemini 3 Pro',
   GLM_5 = 'GLM-5',
-  MINIMAX_M2_5 = 'MiniMax-M2.5',
+  GLM_5_1 = 'glm-5.1',
   KIMI_K2_5 = 'Kimi K2.5',
 }
 
@@ -40,7 +40,7 @@ export class LlmService {
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
       baseURL: this.configService.get<string>('OPENAI_BASE_URL'),
     });
-    this.model = AvailableModel.GLM_5;
+    this.model = AvailableModel.DEEPSEEK_V4_FLASH;
   }
 
   /**

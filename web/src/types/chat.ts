@@ -57,9 +57,9 @@ export type SetMessages = Dispatch<SetStateAction<ChatMessage[]>>
 
 /** 前端可选择的模型列表 */
 export const SUPPORTED_MODELS = [
-  { value: 'minimax-m2.7', label: 'MiniMax M2.7' },
+  { value: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash' },
+  { value: 'deepseek-v4-pro', label: 'DeepSeek V4 Pro' },
   { value: 'kimi-k2.6', label: 'Kimi K2.6' },
-  { value: 'glm-5.1', label: 'GLM 5.1' },
 ] as const
 
 /** 会话数据 */

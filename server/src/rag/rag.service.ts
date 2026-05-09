@@ -32,7 +32,7 @@ export class RagService {
       configuration: {
         baseURL: this.configService.get<string>('OPENAI_BASE_URL'),     // 从 .env 读取代理地址
       },
-      modelName: this.configService.get<string>('OPENAI_MODEL', 'GLM-5'), // 模型名，默认 GLM-5
+      modelName: this.configService.get<string>('OPENAI_MODEL', 'deepseek-v4-flash'), // 模型名，默认 deepseek-v4-flash
       temperature: 0.3, // RAG 场景用低温度：减少模型"发挥"，让回答更忠实于检索内容
     });
   }

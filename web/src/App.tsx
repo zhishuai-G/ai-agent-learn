@@ -39,7 +39,7 @@ function App() {
   const [multiAgentSubMode, setMultiAgentSubMode] = useState<MultiAgentSubMode>(current?.multiAgentSubMode || 'supervisor')
   const [threadId, setThreadId] = useState<string>(current?.threadId || `thread-${Date.now()}`)
   const [pendingResume, setPendingResume] = useState<string | null>(null)
-  const [model, setModel] = useState<string>(current?.model || 'minimax-m2.7')
+  const [model, setModel] = useState<string>(current?.model || 'deepseek-v4-flash')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // 会话切换时恢复状态
@@ -62,7 +62,7 @@ function App() {
         setMode('langgraph')
         setLgSubMode('react')
         setMultiAgentSubMode('supervisor')
-        setModel('minimax-m2.7')
+        setModel('deepseek-v4-flash')
         setThreadId(`thread-${Date.now()}`)
         setSystemPrompt('你是一位友好的 AI 助手，擅长用简洁的语言回答问题。')
       }
