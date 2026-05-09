@@ -185,6 +185,7 @@ export class MultiAgentService implements OnModuleInit, OnModuleDestroy {
       app,
       { messages: [new HumanMessage(requirement)] }, // 初始输入：用户需求作为 HumanMessage
       config,
+      (msg) => this.langchainService.cacheReasoning(msg),
     );
 
     // 所有 Agent 执行完毕后，发送 done 事件
@@ -257,6 +258,7 @@ export class MultiAgentService implements OnModuleInit, OnModuleDestroy {
       app,
       { messages: [new HumanMessage(message)] }, // 用户消息作为初始输入
       config,
+      (msg) => this.langchainService.cacheReasoning(msg),
     );
 
     yield { type: 'done' };

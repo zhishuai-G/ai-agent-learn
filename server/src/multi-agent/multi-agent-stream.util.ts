@@ -49,6 +49,7 @@ export async function* streamMultiAgent(
   app: any,
   input: { messages: BaseMessage[] } | null,
   config: Record<string, any>,
+  onChatModelEnd?: (msg: any) => void,
 ): AsyncGenerator<MultiAgentEvent> {
   const eventStream = app.streamEvents(input, {
     ...config,
@@ -131,6 +132,8 @@ export async function* streamMultiAgent(
       case 'on_chat_model_end': {
         if (!event.name?.startsWith('Chat')) break;
         const msg = event.data?.output;
+        // 同步把 reasoning_content 写入缓存（比 callback handleLLMEnd 更早、更稳）
+        if (msg) onChatModelEnd?.(msg);
         if (msg?.tool_calls?.length) {
           for (const tc of msg.tool_calls) {
             yield {
