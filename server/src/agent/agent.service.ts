@@ -71,13 +71,7 @@ export class AgentService {
       if (msg.role === 'user') {
         messages.push(new HumanMessage(msg.content));
       } else if (msg.role === 'assistant') {
-        const additionalKwargs = (msg as any).thinkContent
-          ? { reasoning_content: (msg as any).thinkContent }
-          : undefined;
-        messages.push(new AIMessage({
-          content: msg.content,
-          ...(additionalKwargs ? { additional_kwargs: additionalKwargs } : {}),
-        }));
+        messages.push(new AIMessage(msg.content));
       }
     }
     messages.push(new HumanMessage(message));
