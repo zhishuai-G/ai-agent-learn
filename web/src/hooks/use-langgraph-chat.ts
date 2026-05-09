@@ -104,7 +104,11 @@ export function useLangGraphChat(
         body: JSON.stringify({
           message: userMessage,
           threadId: options.threadId,
-          history: messages.map(m => ({ role: m.role, content: m.content })),
+          history: messages.map(m => ({
+            role: m.role,
+            content: m.content,
+            ...(m.thinkContent ? { thinkContent: m.thinkContent } : {}),
+          })),
           systemPrompt: options.systemPrompt,
           ...(options.model ? { model: options.model } : {}),
         }),

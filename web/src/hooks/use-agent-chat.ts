@@ -17,7 +17,11 @@ export function useAgentChat(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage,
-          history: messages.map(m => ({ role: m.role, content: m.content })),
+          history: messages.map(m => ({
+            role: m.role,
+            content: m.content,
+            ...(m.thinkContent ? { thinkContent: m.thinkContent } : {}),
+          })),
           systemPrompt,
           ...(model ? { model } : {}),
         }),
